@@ -1,15 +1,10 @@
 /**
- * Centralized environment variable validation.
+ * Public environment variables.
  *
- * When Supabase env vars are missing, the app runs in DEMO MODE.
- * All auth operations return mock responses with clear messaging.
+ * Safe to import from any component (server or client).
+ * Only NEXT_PUBLIC_ prefixed variables are exposed to the browser.
+ * The service role key lives in env-server.ts — never imported by client code.
  */
-
-const envSchema = {
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-};
 
 function isValidUrl(value: string): boolean {
   try {
@@ -24,18 +19,20 @@ function isNonEmpty(value: string): boolean {
   return value.trim().length > 0;
 }
 
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+
 /** True when Supabase is properly configured. */
 export const isSupabaseConfigured =
-  isNonEmpty(envSchema.NEXT_PUBLIC_SUPABASE_URL) &&
-  isValidUrl(envSchema.NEXT_PUBLIC_SUPABASE_URL) &&
-  isNonEmpty(envSchema.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  isNonEmpty(supabaseUrl) &&
+  isValidUrl(supabaseUrl) &&
+  isNonEmpty(supabaseAnonKey);
 
 /** True when Supabase is NOT configured — app runs in demo mode. */
 export const isDemoMode = !isSupabaseConfigured;
 
-/** Safe access to validated env values. */
+/** Public env values — safe for client consumption. */
 export const env = {
-  supabaseUrl: envSchema.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: envSchema.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  supabaseServiceRoleKey: envSchema.SUPABASE_SERVICE_ROLE_KEY,
+  supabaseUrl,
+  supabaseAnonKey,
 } as const;

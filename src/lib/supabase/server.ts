@@ -8,12 +8,13 @@
  *   import { createServerClient } from "@supabase/ssr";
  *   import { cookies } from "next/headers";
  *
- *   const supabase = createServerClient(url, key, {
+ *   const supabase = createServerClient(url, serviceRoleKey, {
  *     cookies: { getAll(), setAll() },
  *   });
  */
 
 import { isDemoMode } from "@/lib/env";
+import { serverEnv } from "@/lib/env-server";
 
 export { isDemoMode };
 
@@ -40,7 +41,7 @@ export async function handleAuthCallback(
   // const { searchParams } = new URL(request.url);
   // const code = searchParams.get("code");
   // if (code) {
-  //   const supabase = createServerClient(...);
+  //   const supabase = createServerClient(url, serverEnv.supabaseServiceRoleKey, { ... });
   //   await supabase.auth.exchangeCodeForSession(code);
   // }
   return { success: true, error: null };
