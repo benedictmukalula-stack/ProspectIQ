@@ -1,11 +1,3 @@
-import type { Metadata } from "next";
-import { LoginForm } from "./login-form";
-
-export const metadata: Metadata = {
-  title: "ProspectIQ - Sign In",
-  description: "Sign in to your ProspectIQ account to access your B2B lead intelligence dashboard.",
-};
-
 export default function LoginPage() {
-  return <LoginForm />;
+  return <main style={{ padding: 48 }}>Login page working</main>;
 }
