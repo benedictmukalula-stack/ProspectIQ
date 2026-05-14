@@ -31,6 +31,11 @@ export const isSupabaseConfigured =
 /** True when Supabase is NOT configured — app runs in demo mode. */
 export const isDemoMode = !isSupabaseConfigured;
 
+/** Alias for isSupabaseConfigured — checks if Supabase env vars are present. */
+export function hasSupabaseEnv(): boolean {
+  return isSupabaseConfigured;
+}
+
 const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "";
 
 /** Public env values — safe for client consumption. */

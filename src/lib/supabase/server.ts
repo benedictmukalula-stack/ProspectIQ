@@ -30,11 +30,9 @@ export async function handleAuthCallback(
   _request: Request
 ): Promise<{ success: boolean; error: string | null }> {
   if (isDemoMode) {
-    return {
-      success: false,
-      error:
-        "Demo mode: Supabase is not connected yet. Connect your Supabase project to enable auth callbacks.",
-    };
+    // In demo mode, let the callback succeed and redirect to dashboard.
+    // Admin users access the dashboard via direct login form bypass.
+    return { success: true, error: null };
   }
 
   // Real implementation when connected:

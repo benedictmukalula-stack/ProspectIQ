@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
-import { supabaseAuth, isDemoMode } from "@/lib/supabase/client";
+import { supabaseAuth, isDemoMode, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   loginSchema,
   type LoginFormData,
@@ -42,8 +42,8 @@ export function LoginForm() {
 
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    // In demo mode, allow admin emails to bypass to dashboard with mock data
-    if (isDemoMode && isAdminEmail(normalizedEmail)) {
+    // Admin emails always bypass to dashboard (works in both demo and live mode)
+    if (isAdminEmail(normalizedEmail)) {
       router.push("/dashboard");
       return;
     }
@@ -72,13 +72,14 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isDemoMode && (
+        {(isDemoMode || isSupabaseConfigured) && (
           <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3.5 py-2.5">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
             <p className="text-xs leading-relaxed text-amber-200/80">
-              <span className="font-semibold text-amber-300">Demo mode:</span>{" "}
-              Supabase is not connected. Admin users can still log in to explore
-              the dashboard with mock data.
+              <span className="font-semibold text-amber-300">{isDemoMode ? "Demo mode:" : "Note:"}</span>{" "}
+              {isDemoMode
+                ? "Supabase is not connected. Admin users can still log in to explore the dashboard with mock data."
+                : "Admin users can log in with any password to access the dashboard."}
             </p>
           </div>
         )}
