@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { clearDemoSession } from "@/lib/auth/demo-session";
 import { ProspectIQLogo } from "@/components/prospectiq/logo";
 import {
   LayoutDashboard,
@@ -88,6 +89,7 @@ export default function DashboardLayout({
         <div className="border-t border-white/[0.06] p-3">
           <Link
             href="/auth/login"
+            onClick={() => clearDemoSession()}
             className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 transition-colors hover:bg-white/[0.04] hover:text-zinc-300"
           >
             <LogOut className="h-4 w-4" />
@@ -153,7 +155,7 @@ export default function DashboardLayout({
           <div className="border-t border-white/[0.06] p-3">
             <Link
               href="/auth/login"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => { clearDemoSession(); setMobileOpen(false); }}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-zinc-500 hover:text-zinc-300"
             >
               <LogOut className="h-4 w-4" />

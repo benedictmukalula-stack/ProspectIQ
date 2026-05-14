@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -17,60 +16,79 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
-import { supabaseAuth, isDemoMode, isSupabaseConfigured } from "@/lib/supabase/client";
-import {
-  loginSchema,
-  type LoginFormData,
-} from "@/lib/auth/schemas";
+import { isDemoMode, isSupabaseConfigured, supabaseAuth } from "@/lib/supabase/client";
+import { loginSchema, type LoginFormData } from "@/lib/auth/schemas";
 import { isAdminEmail } from "@/lib/admin";
+import { setDemoSession } from "@/lib/auth/demo-session";
 
+/**
+ * Login form — no auto-redirects, no useEffect hooks.
+ *
+ * Behaviour:
+ *  Demo mode (no Supabase):
+ *    - Admin email → set sessionStorage demo flag → hard redirect to /dashboard
+ *    - Non-admin email → show inline error: "Demo mode only allows the admin email."
+ *  Supabase mode (env vars present):
+ *    - Call supabase.auth.signInWithPassword()
+ *    - Admin email also goes through Supabase (real auth)
+ *    - On success → hard redirect to /dashboard
+ *    - On error → show inline error message
+ *
+ * IMPORTANT: There is NO useEffect, NO useRouter redirect on mount,
+ * NO automatic redirect of any kind. The form only redirects AFTER
+ * a successful form submission.
+ */
 export function LoginForm() {
-  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  // Admin bypass runs BEFORE zod validation so any password works.
-  // Uses native hard navigation (window.location) instead of Next.js
-  // soft router.push, which can fail silently behind reverse proxies.
-  function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setServerError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const rawEmail = formData.get("email") as string | null;
-    const normalizedEmail = (rawEmail ?? "").trim().toLowerCase();
-
-    if (isAdminEmail(normalizedEmail)) {
-      window.location.href = "/dashboard";
-      return;
-    }
-
-    // Non-admin: fall through to react-hook-form + zod validation
-    handleSubmit(onSubmit)(e);
-  }
-
   async function onSubmit(data: LoginFormData) {
     setServerError(null);
+    setIsSubmitting(true);
+
     const normalizedEmail = data.email.trim().toLowerCase();
 
-    // In real mode, attempt Supabase auth
-    const result = await supabaseAuth.signInWithPassword({
-      email: normalizedEmail,
-      password: data.password,
-    });
+    try {
+      // ── Demo mode: admin bypass ──────────────────────────────────
+      if (isDemoMode) {
+        if (isAdminEmail(normalizedEmail)) {
+          setDemoSession(normalizedEmail);
+          window.location.href = "/dashboard";
+          return;
+        }
+        // Non-admin in demo mode
+        setServerError(
+          "Demo mode only allows the admin email. Please contact the administrator for access."
+        );
+        return;
+      }
 
-    if (result.error) {
-      setServerError(result.error.message);
-    } else {
-      window.location.href = "/dashboard";
+      // ── Supabase mode: real authentication ───────────────────────
+      const result = await supabaseAuth.signInWithPassword({
+        email: normalizedEmail,
+        password: data.password,
+      });
+
+      if (result.error) {
+        setServerError(result.error.message);
+      } else {
+        window.location.href = "/dashboard";
+      }
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "An unexpected error occurred.";
+      setServerError(message);
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -85,18 +103,22 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Mode notice */}
         {(isDemoMode || isSupabaseConfigured) && (
           <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3.5 py-2.5">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
             <p className="text-xs leading-relaxed text-amber-200/80">
-              <span className="font-semibold text-amber-300">{isDemoMode ? "Demo mode:" : "Note:"}</span>{" "}
+              <span className="font-semibold text-amber-300">
+                {isDemoMode ? "Demo mode:" : "Note:"}
+              </span>{" "}
               {isDemoMode
-                ? "Supabase is not connected. Admin users can still log in to explore the dashboard with mock data."
-                : "Admin users can log in with any password to access the dashboard."}
+                ? "Supabase is not connected. Admin users can sign in to explore the dashboard with mock data."
+                : "Connected to Supabase. Enter your credentials to sign in."}
             </p>
           </div>
         )}
 
+        {/* Server / validation error */}
         {serverError && (
           <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-2.5">
             <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
@@ -106,7 +128,7 @@ export function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleFormSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="login-email">Email</Label>
             <div className="relative">
@@ -140,7 +162,11 @@ export function LoginForm() {
               <Input
                 id="login-password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={
+                  isDemoMode
+                    ? "Any password (admin only)"
+                    : "Enter your password"
+                }
                 autoComplete="current-password"
                 disabled={isSubmitting}
                 {...register("password")}

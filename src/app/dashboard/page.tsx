@@ -1,63 +1,19 @@
 import type { Metadata } from "next";
 import { isDemoMode } from "@/lib/env";
-import { KpiCards } from "@/components/dashboard/kpi-cards";
-import { LeadGrowthChart } from "@/components/dashboard/lead-growth-chart";
-import { TopProspectsTable } from "@/components/dashboard/top-prospects-table";
-import { ActivityFeedWidget } from "@/components/dashboard/activity-feed";
-import { CampaignPreviewCards } from "@/components/dashboard/campaign-preview";
-import { TasksPreview } from "@/components/dashboard/tasks-preview";
-import { AiInsightsPreview } from "@/components/dashboard/ai-insights";
+import { DashboardContent } from "@/components/dashboard/dashboard-content";
 
 export const metadata: Metadata = {
   title: "ProspectIQ - Dashboard",
   description: "Your B2B lead intelligence overview.",
 };
 
+/**
+ * Dashboard page — renders in ALL cases, never auto-redirects.
+ *
+ * Demo mode (no Supabase): renders mock data immediately.
+ * Supabase mode: renders a client-side session wrapper that either
+ * shows the dashboard or a "please sign in" message — NEVER redirects.
+ */
 export default function DashboardPage() {
-  return (
-    <div className="space-y-6">
-      {/* Demo mode banner */}
-      {isDemoMode && (
-        <div className="flex items-center gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-          <span className="text-xs font-semibold text-amber-300">Demo mode</span>
-          <span className="text-xs text-amber-200/70">
-            — Dashboard is showing mock data. Connect Supabase to see real data.
-          </span>
-        </div>
-      )}
-
-      {/* Page Header */}
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
-          Overview
-        </h2>
-        <p className="mt-1 text-sm text-zinc-500">
-          Your lead generation performance at a glance.
-        </p>
-      </div>
-
-      {/* KPI Cards */}
-      <KpiCards />
-
-      {/* Main Grid: Chart + Activity */}
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <LeadGrowthChart />
-        </div>
-        <div className="lg:col-span-2">
-          <ActivityFeedWidget />
-        </div>
-      </div>
-
-      {/* Top Prospects Table */}
-      <TopProspectsTable />
-
-      {/* Secondary Grid: Campaigns + Tasks + AI Insights */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <CampaignPreviewCards />
-        <TasksPreview />
-        <AiInsightsPreview />
-      </div>
-    </div>
-  );
+  return <DashboardContent />;
 }
