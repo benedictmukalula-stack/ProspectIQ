@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isDemoMode } from "@/lib/env";
 import { KpiCards } from "@/components/dashboard/kpi-cards";
 import { LeadGrowthChart } from "@/components/dashboard/lead-growth-chart";
 import { TopProspectsTable } from "@/components/dashboard/top-prospects-table";
@@ -15,6 +16,16 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
+      {/* Demo mode banner */}
+      {isDemoMode && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+          <span className="text-xs font-semibold text-amber-300">Demo mode</span>
+          <span className="text-xs text-amber-200/70">
+            — Dashboard is showing mock data. Connect Supabase to see real data.
+          </span>
+        </div>
+      )}
+
       {/* Page Header */}
       <div>
         <h2 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
