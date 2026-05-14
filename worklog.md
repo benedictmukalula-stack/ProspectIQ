@@ -58,3 +58,31 @@ Stage Summary:
 - bento grid product modules with inline UI illustrations
 - 3-tier pricing with annual/monthly toggle
 - Generated /public/dashboard-preview.png for asset use
+
+---
+Task ID: 3
+Agent: Main Agent
+Task: Build Phase 2 — Auth UI + Supabase-ready foundation
+
+Work Log:
+- Created src/lib/env.ts: validates NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY, exports isDemoMode/isSupabaseConfigured
+- Rewrote src/lib/supabase/client.ts: dual-mode client (demo stub vs real Supabase with lazy init), demo mode returns clear error message (no fake silent success)
+- Created src/lib/supabase/server.ts: server-side stub with handleAuthCallback for route handler
+- Created src/lib/auth/schemas.ts: Zod 4 schemas for login, signup, forgot-password, verify-email
+- Created src/components/prospectiq/auth/demo-banner.tsx: amber banner shown only in demo mode
+- Restructured all 4 auth pages: server page.tsx (metadata) + client form component (RHF + Zod + demo/error states)
+- Created /auth/callback/route.ts: GET handler that delegates to handleAuthCallback
+- Updated auth layout: dark background matching landing page, grid/glow effects, noindex robots
+- Installed @supabase/supabase-js@2.105.4
+- Fixed ESLint react-hooks/immutability: replaced window.location.href with useRouter
+- Page metadata: Login "Sign In", Signup "Sign Up", Forgot Password "Reset Password", Verify Email "Verify Email"
+- ESLint: 0 errors
+- Build: 9 routes compiled (8 static + 1 dynamic callback)
+
+Stage Summary:
+- Supabase-ready auth with clean demo/real bifurcation via env detection
+- No fake silent success: demo mode always returns error: "Demo mode: Supabase is not connected yet."
+- React Hook Form + Zod 4 validation on all forms with field-level error messages
+- Amber DemoBanner on every auth form when env vars are missing
+- Server error display (red) separate from demo banner (amber)
+- /auth/callback route ready for Supabase OAuth flow
