@@ -86,3 +86,34 @@ Stage Summary:
 - Amber DemoBanner on every auth form when env vars are missing
 - Server error display (red) separate from demo banner (amber)
 - /auth/callback route ready for Supabase OAuth flow
+
+---
+Task ID: 4
+Agent: Main Agent
+Task: Build Phase 3 — Stable mock dashboard
+
+Work Log:
+- Created src/lib/mock-data.ts: comprehensive typed mock data (KPIs, chart data, prospects, activities, tasks, campaigns, AI insights, companies) with helper color functions
+- Rebuilt dashboard layout (src/app/dashboard/layout.tsx): dark theme sidebar with 10 items (Overview active, 9 marked "Soon"), mobile responsive sidebar with overlay, topbar with search/org/notifications/user menu, breadcrumbs
+- Created 7 dashboard widget components in src/components/dashboard/:
+  - kpi-cards.tsx: 6 KPI cards with trend indicators (up/down)
+  - lead-growth-chart.tsx: Pure CSS/SVG bar chart — no Recharts needed
+  - top-prospects-table.tsx: 8-row sortable table with avatar, status badges, scores
+  - activity-feed.tsx: 7 items with type-specific icons and colors
+  - campaign-preview.tsx: 4 campaigns with status, metrics, progress bars
+  - tasks-preview.tsx: 6 tasks (4 pending, 2 completed) with priority badges
+  - ai-insights.tsx: 3 AI insights (opportunity/risk/suggestion) with confidence scores
+- Dashboard page assembled: KPIs → Chart + Activity → Prospects Table → Campaigns + Tasks + AI Insights
+- All chart rendering is CSS-only (no Recharts needed, no hydration risk)
+- No window/document in server components
+- ESLint: 0 errors
+- Build: 9 routes compiled successfully
+- Dev server: /dashboard returns 200
+
+Stage Summary:
+- Dark-themed dashboard matching landing page aesthetic
+- Full sidebar with 10 nav items, only Overview active, others show "Soon" badge
+- Mobile responsive: hamburger menu opens sidebar overlay
+- 7 widget types covering all dashboard sections requested
+- Pure CSS chart — zero hydration risk, no client-only chart library needed
+- All mock data centralized in src/lib/mock-data.ts with typed interfaces and helper functions
