@@ -37,18 +37,31 @@ export function LoginForm() {
     defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit(data: LoginFormData) {
+  // Admin bypass runs BEFORE zod validation so any password works.
+  // Uses native hard navigation (window.location) instead of Next.js
+  // soft router.push, which can fail silently behind reverse proxies.
+  function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setServerError(null);
 
-    const normalizedEmail = data.email.trim().toLowerCase();
+    const formData = new FormData(e.currentTarget);
+    const rawEmail = formData.get("email") as string | null;
+    const normalizedEmail = (rawEmail ?? "").trim().toLowerCase();
 
-    // Admin emails always bypass to dashboard (works in both demo and live mode)
     if (isAdminEmail(normalizedEmail)) {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
       return;
     }
 
-    // In real mode (or demo non-admin), attempt Supabase auth
+    // Non-admin: fall through to react-hook-form + zod validation
+    handleSubmit(onSubmit)(e);
+  }
+
+  async function onSubmit(data: LoginFormData) {
+    setServerError(null);
+    const normalizedEmail = data.email.trim().toLowerCase();
+
+    // In real mode, attempt Supabase auth
     const result = await supabaseAuth.signInWithPassword({
       email: normalizedEmail,
       password: data.password,
@@ -57,7 +70,7 @@ export function LoginForm() {
     if (result.error) {
       setServerError(result.error.message);
     } else {
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     }
   }
 
@@ -93,7 +106,7 @@ export function LoginForm() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="login-email">Email</Label>
             <div className="relative">
