@@ -17,15 +17,6 @@ export const metadata: Metadata = {
   title: "ProspectIQ — AI-Powered B2B Lead Intelligence",
   description:
     "ProspectIQ uses AI to discover, qualify, and engage your ideal B2B prospects. Turn cold leads into warm conversations with intelligent lead intelligence and outreach automation.",
-  keywords: [
-    "ProspectIQ",
-    "B2B leads",
-    "lead intelligence",
-    "outreach automation",
-    "AI prospecting",
-    "SaaS",
-  ],
-  authors: [{ name: "ProspectIQ" }],
   icons: {
     icon: "/favicon.ico",
   },

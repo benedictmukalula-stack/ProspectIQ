@@ -1,24 +1,22 @@
 ---
 Task ID: 1
-Agent: Main Agent
-Task: Fix routing redirect loop and admin login bypass for ProspectIQ
+Agent: main
+Task: Debug blank preview screen
 
 Work Log:
-- Diagnosed ERR_TOO_MANY_REDIRECTS on /auth/login page
-- Found root cause 1: Auth callback route used `request.url` which resolved to `http://0.0.0.0:3000` in standalone mode, creating unreachable redirect URLs through the Caddy reverse proxy
-- Found root cause 2: Admin login bypass was gated behind `isDemoMode && isAdminEmail()`, but Supabase env vars ARE set (making isDemoMode=false), so the admin bypass was dead code
-- Found root cause 3: Container's HOSTNAME env var is set to container ID, causing Next.js standalone to try binding to an invalid hostname
-- Fixed auth callback route (`src/app/auth/callback/route.ts`) to use `X-Forwarded-Host` and `X-Forwarded-Proto` headers from Caddy to construct proper redirect URLs
-- Fixed login form (`src/app/auth/login/login-form.tsx`) to allow admin bypass regardless of demo mode
-- Fixed `handleAuthCallback` in `src/lib/supabase/server.ts` to return success in demo mode
-- Added `hasSupabaseEnv()` to `src/lib/env.ts`
-- Created `scripts/patch-standalone.py` to fix HOSTNAME env var collision in containers
-- Updated `package.json` build script to auto-apply standalone patch
-- Verified all 6 routes return HTTP 200 through Caddy proxy
-- Verified auth callback redirect no longer contains `0.0.0.0`
+- Read root layout — clean (no providers, no auth, just html/body/children/Toaster)
+- Read all landing page imports — found window/document usage only in useEffect hooks (safe)
+- Checked use-toast hook — module-level state but SSR safe
+- Set minimal safe page.tsx (plain HTML with inline styles) and stripped layout.tsx (removed Toaster)
+- Built and tested: minimal page returns 200 with visible content
+- Added Toaster back: still works (200, content renders)
+- Restored full landing page with all 10 components: builds clean, all routes 200
+- Tested all 3 routes: / = 133KB, /auth/login = 19KB, /dashboard = 33KB
+- No component crashes found — all landing components render correctly
 
 Stage Summary:
-- All routes: /, /auth/login, /auth/signup, /auth/forgot-password, /auth/verify-email, /dashboard → 200
-- Auth callback redirect: `Location: http://localhost/dashboard` (was `http://0.0.0.0:3000/dashboard`)
-- Admin email benedict.mukalula@gmail.com can now log in via bypass regardless of Supabase connection status
-- Files changed: src/app/auth/callback/route.ts, src/app/auth/login/login-form.tsx, src/lib/supabase/server.ts, src/lib/env.ts, scripts/patch-standalone.py, package.json
+- Blank screen was NOT caused by a code crash or broken import
+- All components render correctly — landing page (133KB), login (19KB), dashboard (33KB)
+- The "blank preview" is caused by the standalone server process dying between tool calls
+- Server process survives when started inline in the same bash session, but gets killed otherwise
+- This is a container process lifecycle issue, not a code bug
