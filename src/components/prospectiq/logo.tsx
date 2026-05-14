@@ -1,13 +1,28 @@
 import { Brain } from "lucide-react";
 
-export function ProspectIQLogo({ className = "" }: { className?: string }) {
+export function ProspectIQLogo({
+  className = "",
+  variant = "dark",
+}: {
+  className?: string;
+  variant?: "dark" | "light";
+}) {
+  const iconBg = variant === "light" ? "bg-emerald-500" : "bg-primary";
+  const textColor =
+    variant === "light"
+      ? "text-white"
+      : "text-foreground";
+  const accentColor = variant === "light" ? "text-emerald-400" : "text-primary";
+
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-        <Brain className="h-5 w-5 text-primary-foreground" />
+    <div className={`flex items-center gap-2.5 ${className}`}>
+      <div
+        className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBg}`}
+      >
+        <Brain className="h-4 w-4 text-white" />
       </div>
-      <span className="text-xl font-bold tracking-tight text-foreground">
-        Prospect<span className="text-primary">IQ</span>
+      <span className={`text-lg font-semibold tracking-tight ${textColor}`}>
+        Prospect<span className={accentColor}>IQ</span>
       </span>
     </div>
   );
