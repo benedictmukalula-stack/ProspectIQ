@@ -117,3 +117,31 @@ Stage Summary:
 - 7 widget types covering all dashboard sections requested
 - Pure CSS chart — zero hydration risk, no client-only chart library needed
 - All mock data centralized in src/lib/mock-data.ts with typed interfaces and helper functions
+
+---
+Task ID: 5
+Agent: Main Agent
+Task: Fix blank preview — audit and clean fix for redirect loop and blank page
+
+Work Log:
+- Diagnosed ERR_TOO_MANY_REDIRECTS: stale dev server process on port 3000 conflicting with preview proxy
+- Identified root cause of blank preview: dev.sh cleanup trap kills the dev server on script EXIT
+- The trap `trap cleanup EXIT INT TERM` in .zscripts/dev.sh fires `kill $DEV_PID` when dev.sh exits after health check, killing the server it just started
+- Fixed .zscripts/dev.sh: removed the cleanup trap, switched from Turbopack dev server to production standalone build
+- Production standalone server (node .next/standalone/server.js) uses significantly less memory than Turbopack dev
+- Cleaned corrupted .next directory (production build artifacts conflicted with Turbopack dev cache)
+- Verified all 6 routes return HTTP 200 with correct content:
+  - / -> 200 (134KB, "ProspectIQ — AI-Powered B2B Lead Intelligence")
+  - /dashboard -> 200 (108KB, "ProspectIQ - Dashboard")
+  - /auth/login -> 200 (18KB)
+  - /auth/signup -> 200
+  - /auth/forgot-password -> 200
+  - /auth/verify-email -> 200
+- Server survives idle time (>10s) without being killed
+- No app code was modified — only .zscripts/dev.sh was updated
+
+Stage Summary:
+- Root cause: dev.sh EXIT trap was killing the dev server process after the health check
+- Fix: Removed cleanup trap, switched to production standalone server (stable, low memory)
+- Preview proxy (Caddy on port 81) now successfully proxies to port 3000
+- All routes verified working with correct HTML content
