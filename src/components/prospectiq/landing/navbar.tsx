@@ -6,6 +6,7 @@ import { ProspectIQLogo } from "@/components/prospectiq/logo";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
+  { href: "/", label: "Home" },
   { href: "#features", label: "Features" },
   { href: "#product", label: "Product" },
   { href: "#how-it-works", label: "How It Works" },
