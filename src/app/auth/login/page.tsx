@@ -1,15 +1,14 @@
-import type { Metadata } from "next";
-import { LoginForm } from "./login-form";
-
-export const metadata: Metadata = {
-  title: "ProspectIQ - Sign In",
-  description: "Sign in to your ProspectIQ account to access your B2B lead intelligence dashboard.",
-};
-
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#09090b] px-4 py-12">
-      <LoginForm />
-    </div>
+    <main style={{
+      minHeight: "100vh",
+      padding: "48px",
+      background: "#020617",
+      color: "white",
+      fontFamily: "Arial, sans-serif"
+    }}>
+      <h1>Login route stable</h1>
+      <p>No redirects should happen on this page.</p>
+    </main>
   );
 }
