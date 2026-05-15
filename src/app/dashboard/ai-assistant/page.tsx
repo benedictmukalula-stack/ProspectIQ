@@ -163,6 +163,7 @@ export default function AiAssistantPage() {
   const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(!isDemoMode);
+  const [thinking, setThinking] = useState(false);
   const [message, setMessage] = useState("");
 
   async function getWorkspace() {
@@ -268,20 +269,69 @@ export default function AiAssistantPage() {
     };
   }, [leads, campaigns]);
 
-  function handleAsk(event: FormEvent<HTMLFormElement>) {
+  async function handleAsk(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!question.trim()) return;
 
     const userQuestion = question.trim();
-    const response = answerFromContext(userQuestion, leads, campaigns);
+    const userMessage: ChatMessage = { role: "user", content: userQuestion };
 
-    setMessages((current) => [
-      ...current,
-      { role: "user", content: userQuestion },
-      { role: "assistant", content: response },
-    ]);
+    setMessages((current) => [...current, userMessage]);
     setQuestion("");
+    setThinking(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          messages: [...messages, userMessage].slice(-8),
+          workspaceContext: {
+            leads,
+            campaigns,
+            overview,
+          },
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const fallback = answerFromContext(userQuestion, leads, campaigns);
+        setMessages((current) => [
+          ...current,
+          {
+            role: "assistant",
+            content: `${fallback}\n\nLLM fallback note: ${data.error || "AI provider unavailable."}`,
+          },
+        ]);
+        setThinking(false);
+        return;
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          role: "assistant",
+          content: data.content,
+        },
+      ]);
+    } catch {
+      const fallback = answerFromContext(userQuestion, leads, campaigns);
+      setMessages((current) => [
+        ...current,
+        {
+          role: "assistant",
+          content: `${fallback}\n\nLLM fallback note: AI provider unavailable.`,
+        },
+      ]);
+    }
+
+    setThinking(false);
   }
 
   return (
@@ -359,8 +409,11 @@ export default function AiAssistantPage() {
               onChange={(event) => setQuestion(event.target.value)}
             />
 
-            <button className="rounded-xl bg-blue-500 px-5 py-3 text-sm font-medium text-white">
-              Ask Assistant
+            <button
+              disabled={thinking}
+              className="rounded-xl bg-blue-500 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {thinking ? "Thinking..." : "Ask Assistant"}
             </button>
           </form>
         </div>
@@ -387,8 +440,8 @@ export default function AiAssistantPage() {
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-amber-400/20 bg-amber-400/10 p-4 text-sm text-amber-100">
-            This assistant currently uses deterministic workspace intelligence. A true LLM route can be added next with OpenAI/Zhipu server-side keys.
+          <div className="mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+            This assistant now uses a secure server-side LLM route when OPENAI_API_KEY or ZHIPU_API_KEY is configured. It falls back to deterministic workspace intelligence if the provider is unavailable.
           </div>
         </div>
       </div>
