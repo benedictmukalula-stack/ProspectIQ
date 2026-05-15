@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, Building2, AlertCircle } from "lucide-react";
-import { supabaseAuth } from "@/lib/supabase/client";
+import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
 import {
   signupSchema,
   type SignupFormData,
@@ -36,6 +36,7 @@ export function SignupForm() {
   });
 
   async function onSubmit(data: SignupFormData) {
+    if (isDemoMode) return;
     setServerError(null);
 
     const result = await supabaseAuth.signUp({
@@ -83,7 +84,7 @@ export function SignupForm() {
                 type="text"
                 placeholder="Acme Inc."
                 autoComplete="organization"
-                disabled={isSubmitting}
+                disabled={isDemoMode || isSubmitting}
                 {...register("company")}
               />
             </div>
@@ -103,7 +104,7 @@ export function SignupForm() {
                 type="email"
                 placeholder="you@company.com"
                 autoComplete="email"
-                disabled={isSubmitting}
+                disabled={isDemoMode || isSubmitting}
                 {...register("email")}
               />
             </div>
@@ -121,7 +122,7 @@ export function SignupForm() {
                 type="password"
                 placeholder="Min. 8 characters"
                 autoComplete="new-password"
-                disabled={isSubmitting}
+                disabled={isDemoMode || isSubmitting}
                 {...register("password")}
               />
             </div>
@@ -132,16 +133,24 @@ export function SignupForm() {
             )}
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
-              </>
-            ) : (
-              "Create Account"
-            )}
+          <Button type="submit" className="w-full" disabled={isDemoMode || isSubmitting}>
+            {isDemoMode
+              ? "Account creation disabled in demo mode"
+              : isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                "Create Account"
+              )}
           </Button>
+
+          {isDemoMode && (
+            <p className="text-center text-xs text-zinc-500">
+              Connect Supabase to enable account creation.
+            </p>
+          )}
         </form>
 
         <p className="mt-4 text-center text-xs text-zinc-500">

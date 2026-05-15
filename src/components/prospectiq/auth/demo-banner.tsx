@@ -11,9 +11,7 @@ export function DemoBanner() {
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
       <p className="text-xs leading-relaxed text-amber-200/80">
         <span className="font-semibold text-amber-300">Demo mode:</span>{" "}
-        Supabase is not connected yet. All form submissions will show a demo
-        error. Connect your Supabase project via environment variables to enable
-        real authentication.
+        Supabase is not connected. Account creation is disabled.
       </p>
     </div>
   );

@@ -22,7 +22,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { supabaseAuth } from "@/lib/supabase/client";
+import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
@@ -43,6 +43,7 @@ export function ForgotPasswordForm() {
   });
 
   async function onSubmit(data: ForgotPasswordFormData) {
+    if (isDemoMode) return;
     setServerError(null);
 
     const result = await supabaseAuth.resetPasswordForEmail(data.email);
@@ -109,7 +110,7 @@ export function ForgotPasswordForm() {
                     type="email"
                     placeholder="you@company.com"
                     autoComplete="email"
-                    disabled={isSubmitting}
+                    disabled={isDemoMode || isSubmitting}
                     {...register("email")}
                   />
                 </div>
@@ -120,16 +121,24 @@ export function ForgotPasswordForm() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending link...
-                  </>
-                ) : (
-                  "Send Reset Link"
-                )}
+              <Button type="submit" className="w-full" disabled={isDemoMode || isSubmitting}>
+                {isDemoMode
+                  ? "Password reset disabled in demo mode"
+                  : isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending link...
+                    </>
+                  ) : (
+                    "Send Reset Link"
+                  )}
               </Button>
+
+              {isDemoMode && (
+                <p className="text-center text-xs text-zinc-500">
+                  Connect Supabase to enable password reset.
+                </p>
+              )}
             </form>
           </>
         )}

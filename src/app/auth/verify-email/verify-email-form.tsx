@@ -22,7 +22,7 @@ import {
   AlertCircle,
   KeyRound,
 } from "lucide-react";
-import { supabaseAuth } from "@/lib/supabase/client";
+import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
 import {
   verifyEmailSchema,
   type VerifyEmailFormData,
@@ -43,6 +43,7 @@ export function VerifyEmailForm() {
   });
 
   async function onSubmit(data: VerifyEmailFormData) {
+    if (isDemoMode) return;
     setServerError(null);
 
     const result = await supabaseAuth.verifyOtp({
@@ -107,7 +108,7 @@ export function VerifyEmailForm() {
                     type="email"
                     placeholder="you@company.com"
                     autoComplete="email"
-                    disabled={isSubmitting}
+                    disabled={isDemoMode || isSubmitting}
                     {...register("email")}
                   />
                 </div>
@@ -129,7 +130,7 @@ export function VerifyEmailForm() {
                     placeholder="Enter 6-digit code"
                     maxLength={6}
                     autoComplete="one-time-code"
-                    disabled={isSubmitting}
+                    disabled={isDemoMode || isSubmitting}
                     {...register("code")}
                   />
                 </div>
@@ -140,27 +141,25 @@ export function VerifyEmailForm() {
                 )}
               </div>
 
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify Email"
-                )}
+              <Button type="submit" className="w-full" disabled={isDemoMode || isSubmitting}>
+                {isDemoMode
+                  ? "Email verification disabled in demo mode"
+                  : isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify Email"
+                  )}
               </Button>
-            </form>
 
-            <p className="mt-4 text-center text-sm text-zinc-500">
-              Didn&apos;t receive a code?{" "}
-              <button
-                type="button"
-                className="font-medium text-zinc-300 hover:underline"
-              >
-                Resend code
-              </button>
-            </p>
+              {isDemoMode && (
+                <p className="text-center text-xs text-zinc-500">
+                  Connect Supabase to enable email verification.
+                </p>
+              )}
+            </form>
           </>
         )}
       </CardContent>
