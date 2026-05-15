@@ -26,6 +26,13 @@ type LeadForm = {
   status: string;
 };
 
+type EnrichmentResult = {
+  score: number;
+  status: string;
+  insights: string[];
+  source: string;
+};
+
 const mockLeads: Lead[] = [
   {
     id: "1",
@@ -74,7 +81,9 @@ export default function LeadsPage() {
   const [loading, setLoading] = useState(!isDemoMode);
   const [saving, setSaving] = useState(false);
   const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
+  const [scoringLeadId, setScoringLeadId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [insights, setInsights] = useState<string[]>([]);
 
   async function getWorkspace() {
     const supabase = createBrowserSupabaseClient();
@@ -297,6 +306,74 @@ export default function LeadsPage() {
     setMessage("Lead updated in Supabase.");
   }
 
+  async function enrichLead(lead: Lead) {
+    setScoringLeadId(lead.id);
+    setMessage("");
+    setInsights([]);
+
+    const response = await fetch("/api/leads/enrich", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(lead),
+    });
+
+    const enrichment = (await response.json()) as EnrichmentResult | { error: string };
+
+    if (!response.ok || "error" in enrichment) {
+      setMessage("AI scoring failed.");
+      setScoringLeadId(null);
+      return;
+    }
+
+    const updatedFields = {
+      score: enrichment.score,
+      status: enrichment.status,
+    };
+
+    if (isDemoMode) {
+      setLeads((current) =>
+        current.map((item) =>
+          item.id === lead.id ? { ...item, ...updatedFields } : item
+        )
+      );
+      setInsights(enrichment.insights);
+      setMessage(`AI scored ${lead.name}: ${enrichment.score} · ${enrichment.status}`);
+      setScoringLeadId(null);
+      return;
+    }
+
+    const workspace = await getWorkspace();
+
+    if (workspace.error || !workspace.supabase || !workspace.organizationId) {
+      setMessage(`${workspace.error} AI score was not saved.`);
+      setScoringLeadId(null);
+      return;
+    }
+
+    const result = await workspace.supabase
+      .from("leads")
+      .update(updatedFields)
+      .eq("id", lead.id)
+      .eq("organization_id", workspace.organizationId)
+      .select("id,name,company,role,email,score,status")
+      .single();
+
+    if (result.error) {
+      setMessage(result.error.message);
+      setScoringLeadId(null);
+      return;
+    }
+
+    setLeads((current) =>
+      current.map((item) => (item.id === lead.id ? result.data : item))
+    );
+    setInsights(enrichment.insights);
+    setMessage(`AI scored ${lead.name}: ${enrichment.score} · ${enrichment.status}`);
+    setScoringLeadId(null);
+  }
+
   async function deleteLead(lead: Lead) {
     const confirmed = window.confirm(`Delete ${lead.name} from ${lead.company}?`);
     if (!confirmed) return;
@@ -344,13 +421,24 @@ export default function LeadsPage() {
         <p className="text-sm text-slate-400">ProspectIQ CRM</p>
         <h1 className="mt-2 text-3xl font-bold">Leads</h1>
         <p className="mt-2 text-slate-400">
-          Lead management connected to Supabase with create, edit, and delete actions.
+          Lead management with create, edit, delete, AI scoring, and enrichment actions.
         </p>
       </div>
 
       {message && (
         <div className="mb-6 rounded-xl border border-blue-400/30 bg-blue-400/10 p-4 text-sm text-blue-100">
           {message}
+        </div>
+      )}
+
+      {insights.length > 0 && (
+        <div className="mb-6 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+          <p className="mb-2 font-semibold">AI enrichment insights</p>
+          <ul className="list-disc space-y-1 pl-5">
+            {insights.map((insight) => (
+              <li key={insight}>{insight}</li>
+            ))}
+          </ul>
         </div>
       )}
 
@@ -455,7 +543,7 @@ export default function LeadsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left text-sm">
+          <table className="w-full min-w-[1040px] text-left text-sm">
             <thead className="text-slate-400">
               <tr>
                 <th className="py-3">Name</th>
@@ -489,11 +577,21 @@ export default function LeadsPage() {
                     <div className="flex justify-end gap-2">
                       <button
                         type="button"
+                        disabled={scoringLeadId === lead.id}
+                        onClick={() => enrichLead(lead)}
+                        className="rounded-lg border border-emerald-400/30 px-3 py-2 text-xs text-emerald-300 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {scoringLeadId === lead.id ? "Scoring..." : "AI Score"}
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => startEditing(lead)}
                         className="rounded-lg border border-white/10 px-3 py-2 text-xs text-slate-200 hover:bg-white/5"
                       >
                         Edit
                       </button>
+
                       <button
                         type="button"
                         disabled={deletingLeadId === lead.id}
