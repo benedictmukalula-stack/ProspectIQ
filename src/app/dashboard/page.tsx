@@ -7,8 +7,8 @@ export default function DashboardPage() {
       color: "white",
       fontFamily: "Arial, sans-serif"
     }}>
-      <h1>Dashboard route stable</h1>
-      <p>No auth protection active.</p>
+      <h1>Dashboard working — Phase 3 coming next.</h1>
+      <p>No auth protection active. No redirect logic active.</p>
     </main>
   );
 }
