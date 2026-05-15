@@ -1,176 +1,135 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Mail, Lock, Loader2, Building2, AlertCircle } from "lucide-react";
 import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
-import {
-  signupSchema,
-  type SignupFormData,
-} from "@/lib/auth/schemas";
-import { DemoBanner } from "@/components/prospectiq/auth/demo-banner";
 
-export function SignupForm() {
-  const [serverError, setServerError] = useState<string | null>(null);
+export default function SignupForm() {
+  const [workspaceName, setWorkspaceName] = useState("Knowledge Camp Global");
+  const [email, setEmail] = useState("benedict.mukalula@gmail.com");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<SignupFormData>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: { company: "", email: "", password: "" },
-  });
+  async function handleSignup(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  async function onSubmit(data: SignupFormData) {
-    if (isDemoMode) return;
-    setServerError(null);
+    setMessage("");
+    setServerError("");
+    setLoading(true);
+
+    if (isDemoMode) {
+      setLoading(false);
+      setServerError("Demo mode: Supabase is not connected yet.");
+      return;
+    }
 
     const result = await supabaseAuth.signUp({
-      email: data.email,
-      password: data.password,
-      options: { data: { company: data.company } },
+      email: email.trim().toLowerCase(),
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: {
+          workspace_name: workspaceName,
+        },
+      },
     });
+
+    setLoading(false);
 
     if (result.error) {
       setServerError(result.error.message);
-    } else {
-      window.location.assign("/auth/verify-email");
+      return;
     }
+
+    setMessage("Account created. Check your email for the confirmation link.");
   }
 
   return (
-    <Card className="w-full max-w-md">
-      <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">
-          Create your account
-        </CardTitle>
-        <CardDescription>
-          Start your 14-day free trial. No credit card required.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <DemoBanner />
+    <main className="min-h-screen bg-slate-950 px-6 py-12 text-white">
+      <div className="mx-auto max-w-md rounded-2xl border border-white/10 bg-white/5 p-8">
+        <p className="text-sm text-slate-400">ProspectIQ</p>
 
-        {serverError && (
-          <div className="mb-4 flex items-start gap-2.5 rounded-lg border border-destructive/20 bg-destructive/5 px-3.5 py-2.5">
-            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
-            <p className="text-xs leading-relaxed text-destructive/90">
-              {serverError}
-            </p>
+        <h1 className="mt-3 text-3xl font-bold">Create your account</h1>
+
+        <p className="mt-2 text-slate-400">
+          Start your ProspectIQ workspace.
+        </p>
+
+        {isDemoMode && (
+          <div className="mt-6 rounded-xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+            Demo mode: Supabase is not connected yet.
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="signup-company">Company name</Label>
-            <div className="relative">
-              <Building2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="signup-company"
-                type="text"
-                placeholder="Acme Inc."
-                autoComplete="organization"
-                disabled={isDemoMode || isSubmitting}
-                {...register("company")}
-              />
-            </div>
-            {errors.company && (
-              <p className="text-xs text-destructive">
-                {errors.company.message}
-              </p>
-            )}
+        {serverError && (
+          <div className="mt-6 rounded-xl border border-red-400/30 bg-red-400/10 p-4 text-sm text-red-100">
+            {serverError}
+          </div>
+        )}
+
+        {message && (
+          <div className="mt-6 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-sm text-emerald-100">
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSignup} className="mt-6 space-y-4">
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              Workspace Name
+            </label>
+            <input
+              value={workspaceName}
+              onChange={(event) => setWorkspaceName(event.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none"
+              required
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="signup-email">Work email</Label>
-            <div className="relative">
-              <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="signup-email"
-                type="email"
-                placeholder="you@company.com"
-                autoComplete="email"
-                disabled={isDemoMode || isSubmitting}
-                {...register("email")}
-              />
-            </div>
-            {errors.email && (
-              <p className="text-xs text-destructive">{errors.email.message}</p>
-            )}
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none"
+              required
+            />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="signup-password">Password</Label>
-            <div className="relative">
-              <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="signup-password"
-                type="password"
-                placeholder="Min. 8 characters"
-                autoComplete="new-password"
-                disabled={isDemoMode || isSubmitting}
-                {...register("password")}
-              />
-            </div>
-            {errors.password && (
-              <p className="text-xs text-destructive">
-                {errors.password.message}
-              </p>
-            )}
+          <div>
+            <label className="mb-2 block text-sm text-slate-400">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="w-full rounded-xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none"
+              required
+              minLength={6}
+            />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isDemoMode || isSubmitting}>
-            {isDemoMode
-              ? "Account creation disabled in demo mode"
-              : isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-          </Button>
-
-          {isDemoMode && (
-            <p className="text-center text-xs text-zinc-500">
-              Connect Supabase to enable account creation.
-            </p>
-          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-500 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {loading ? "Creating account..." : "Create Account"}
+          </button>
         </form>
 
-        <p className="mt-4 text-center text-xs text-zinc-500">
-          By signing up, you agree to our{" "}
-          <span className="underline hover:text-zinc-300">Terms of Service</span>{" "}
-          and{" "}
-          <span className="underline hover:text-zinc-300">Privacy Policy</span>.
-        </p>
-      </CardContent>
-      <CardFooter className="justify-center">
-        <p className="text-center text-sm text-zinc-500">
+        <p className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{" "}
-          <Link
-            href="/auth/login"
-            className="font-medium text-zinc-300 hover:underline"
-          >
+          <a href="/auth/login" className="text-blue-300">
             Sign in
-          </Link>
+          </a>
         </p>
-      </CardFooter>
-    </Card>
+      </div>
+    </main>
   );
 }
