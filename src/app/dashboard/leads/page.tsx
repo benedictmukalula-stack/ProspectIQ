@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import {
   createBrowserSupabaseClient,
   isDemoMode,
@@ -14,6 +14,15 @@ type Lead = {
   role: string | null;
   email: string | null;
   score: number;
+  status: string;
+};
+
+type LeadForm = {
+  name: string;
+  company: string;
+  role: string;
+  email: string;
+  score: string;
   status: string;
 };
 
@@ -38,10 +47,48 @@ const mockLeads: Lead[] = [
   },
 ];
 
+const emptyForm: LeadForm = {
+  name: "",
+  company: "",
+  role: "",
+  email: "",
+  score: "70",
+  status: "New",
+};
+
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [form, setForm] = useState<LeadForm>(emptyForm);
   const [loading, setLoading] = useState(!isDemoMode);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  async function getWorkspace() {
+    const supabase = createBrowserSupabaseClient();
+
+    if (!supabase) {
+      return { supabase: null, userId: null, organizationId: null, error: "Supabase client unavailable." };
+    }
+
+    const userResult = await supabaseAuth.getUser();
+
+    if (userResult.error || !userResult.data.user) {
+      return { supabase, userId: null, organizationId: null, error: "No active session." };
+    }
+
+    const workspaceResult = await supabase.rpc("ensure_user_workspace");
+
+    if (workspaceResult.error || !workspaceResult.data?.[0]) {
+      return { supabase, userId: userResult.data.user.id, organizationId: null, error: "Workspace not ready." };
+    }
+
+    return {
+      supabase,
+      userId: userResult.data.user.id,
+      organizationId: workspaceResult.data[0].organization_id,
+      error: null,
+    };
+  }
 
   useEffect(() => {
     async function loadLeads() {
@@ -51,39 +98,19 @@ export default function LeadsPage() {
         return;
       }
 
-      const supabase = createBrowserSupabaseClient();
+      const workspace = await getWorkspace();
 
-      if (!supabase) {
-        setMessage("Supabase client unavailable. Showing mock leads.");
+      if (workspace.error || !workspace.supabase || !workspace.organizationId) {
+        setMessage(`${workspace.error} Showing mock leads.`);
         setLeads(mockLeads);
         setLoading(false);
         return;
       }
 
-      const userResult = await supabaseAuth.getUser();
-
-      if (userResult.error || !userResult.data.user) {
-        setMessage("No active session. Showing mock leads.");
-        setLeads(mockLeads);
-        setLoading(false);
-        return;
-      }
-
-      const workspaceResult = await supabase.rpc("ensure_user_workspace");
-
-      if (workspaceResult.error || !workspaceResult.data?.[0]) {
-        setMessage("Workspace not ready. Showing mock leads.");
-        setLeads(mockLeads);
-        setLoading(false);
-        return;
-      }
-
-      const organizationId = workspaceResult.data[0].organization_id;
-
-      const result = await supabase
+      const result = await workspace.supabase
         .from("leads")
         .select("id,name,company,role,email,score,status")
-        .eq("organization_id", organizationId)
+        .eq("organization_id", workspace.organizationId)
         .order("created_at", { ascending: false });
 
       if (result.error) {
@@ -93,52 +120,84 @@ export default function LeadsPage() {
         return;
       }
 
-      if (!result.data || result.data.length === 0) {
-        const seedResult = await supabase
-          .from("leads")
-          .insert([
-            {
-              organization_id: organizationId,
-              created_by: userResult.data.user.id,
-              name: "Sarah M.",
-              company: "Atlas Freight",
-              role: "Operations Director",
-              email: "sarah@atlasfreight.example",
-              score: 92,
-              status: "Warm",
-            },
-            {
-              organization_id: organizationId,
-              created_by: userResult.data.user.id,
-              name: "James K.",
-              company: "TradeLink Africa",
-              role: "Procurement Lead",
-              email: "james@tradelink.example",
-              score: 88,
-              status: "Hot",
-            },
-          ])
-          .select("id,name,company,role,email,score,status");
-
-        if (seedResult.error) {
-          setMessage(seedResult.error.message);
-          setLeads(mockLeads);
-        } else {
-          setLeads(seedResult.data || mockLeads);
-          setMessage("Seeded starter leads into Supabase.");
-        }
-
-        setLoading(false);
-        return;
-      }
-
-      setLeads(result.data);
-      setMessage("Loaded live leads from Supabase.");
+      setLeads(result.data?.length ? result.data : mockLeads);
+      setMessage(result.data?.length ? "Loaded live leads from Supabase." : "No live leads yet. Showing starter examples.");
       setLoading(false);
     }
 
     loadLeads();
   }, []);
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setMessage("");
+
+    const leadScore = Number(form.score);
+
+    if (!form.name.trim() || !form.company.trim()) {
+      setMessage("Name and company are required.");
+      setSaving(false);
+      return;
+    }
+
+    if (Number.isNaN(leadScore) || leadScore < 0 || leadScore > 100) {
+      setMessage("Score must be a number between 0 and 100.");
+      setSaving(false);
+      return;
+    }
+
+    const newLeadPayload = {
+      name: form.name.trim(),
+      company: form.company.trim(),
+      role: form.role.trim() || null,
+      email: form.email.trim() || null,
+      score: leadScore,
+      status: form.status,
+    };
+
+    if (isDemoMode) {
+      const demoLead: Lead = {
+        id: crypto.randomUUID(),
+        ...newLeadPayload,
+      };
+
+      setLeads((current) => [demoLead, ...current]);
+      setForm(emptyForm);
+      setMessage("Demo lead added locally.");
+      setSaving(false);
+      return;
+    }
+
+    const workspace = await getWorkspace();
+
+    if (workspace.error || !workspace.supabase || !workspace.organizationId || !workspace.userId) {
+      setMessage(`${workspace.error} Lead was not saved.`);
+      setSaving(false);
+      return;
+    }
+
+    const result = await workspace.supabase
+      .from("leads")
+      .insert({
+        ...newLeadPayload,
+        organization_id: workspace.organizationId,
+        created_by: workspace.userId,
+      })
+      .select("id,name,company,role,email,score,status")
+      .single();
+
+    if (result.error) {
+      setMessage(result.error.message);
+      setSaving(false);
+      return;
+    }
+
+    setLeads((current) => [result.data, ...current]);
+    setForm(emptyForm);
+    setMessage("Lead saved to Supabase.");
+    setSaving(false);
+  }
 
   return (
     <div>
@@ -146,7 +205,7 @@ export default function LeadsPage() {
         <p className="text-sm text-slate-400">ProspectIQ CRM</p>
         <h1 className="mt-2 text-3xl font-bold">Leads</h1>
         <p className="mt-2 text-slate-400">
-          Lead management connected to Supabase with mock fallback.
+          Lead management connected to Supabase with a working create-lead form.
         </p>
       </div>
 
@@ -156,15 +215,82 @@ export default function LeadsPage() {
         </div>
       )}
 
+      <form onSubmit={handleSubmit} className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <div className="mb-5">
+          <h2 className="text-lg font-semibold">Add Lead</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Create a new prospect and save it into the active workspace.
+          </p>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <input
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+            placeholder="Lead name"
+            value={form.name}
+            onChange={(event) => setForm({ ...form, name: event.target.value })}
+          />
+
+          <input
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+            placeholder="Company"
+            value={form.company}
+            onChange={(event) => setForm({ ...form, company: event.target.value })}
+          />
+
+          <input
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+            placeholder="Role"
+            value={form.role}
+            onChange={(event) => setForm({ ...form, role: event.target.value })}
+          />
+
+          <input
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+            placeholder="Email"
+            type="email"
+            value={form.email}
+            onChange={(event) => setForm({ ...form, email: event.target.value })}
+          />
+
+          <input
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+            placeholder="Score"
+            type="number"
+            min="0"
+            max="100"
+            value={form.score}
+            onChange={(event) => setForm({ ...form, score: event.target.value })}
+          />
+
+          <select
+            className="rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none"
+            value={form.status}
+            onChange={(event) => setForm({ ...form, status: event.target.value })}
+          >
+            <option>New</option>
+            <option>Warm</option>
+            <option>Hot</option>
+            <option>Qualified</option>
+            <option>Contacted</option>
+          </select>
+        </div>
+
+        <button
+          disabled={saving}
+          className="mt-5 rounded-xl bg-blue-500 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {saving ? "Saving Lead..." : "Add Lead"}
+        </button>
+      </form>
+
       <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
         <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <h2 className="text-lg font-semibold">
             {loading ? "Loading leads..." : "Lead Database"}
           </h2>
 
-          <button className="rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white">
-            Add Lead — Coming Soon
-          </button>
+          <span className="text-sm text-slate-400">{leads.length} leads</span>
         </div>
 
         <div className="overflow-x-auto">
