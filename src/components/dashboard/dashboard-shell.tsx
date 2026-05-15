@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabaseAuth, isDemoMode } from "@/lib/supabase/client";
 
 const navItems = [
   { label: "Overview", href: "/dashboard" },
@@ -17,6 +21,41 @@ export default function DashboardShell({
 }: {
   children: React.ReactNode;
 }) {
+  const [userEmail, setUserEmail] = useState("benedict.mukalula@gmail.com");
+  const [authStatus, setAuthStatus] = useState(
+    isDemoMode ? "Demo Mode" : "Checking session..."
+  );
+
+  useEffect(() => {
+    async function loadSession() {
+      if (isDemoMode) {
+        setAuthStatus("Demo Mode");
+        return;
+      }
+
+      const result = await supabaseAuth.getUser();
+
+      if (result.error || !result.data.user) {
+        setAuthStatus("No active session");
+        setUserEmail("Guest user");
+        return;
+      }
+
+      setUserEmail(result.data.user.email || "Authenticated user");
+      setAuthStatus("Authenticated");
+    }
+
+    loadSession();
+  }, []);
+
+  async function handleLogout() {
+    if (!isDemoMode) {
+      await supabaseAuth.signOut();
+    }
+
+    window.location.href = "/auth/login";
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="flex">
@@ -47,18 +86,32 @@ export default function DashboardShell({
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm text-slate-400">Demo Workspace</p>
-                <h2 className="text-xl font-semibold">ProspectIQ Control Center</h2>
+                <h2 className="text-xl font-semibold">
+                  ProspectIQ Control Center
+                </h2>
               </div>
 
-              <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
-                Admin: benedict.mukalula@gmail.com
+              <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
+                  <p>{userEmail}</p>
+                  <p className="mt-1 text-xs text-slate-500">{authStatus}</p>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  className="rounded-xl bg-slate-800 px-4 py-3 text-sm text-slate-200 hover:bg-slate-700"
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </header>
 
           <div className="p-6 lg:p-8">
             <div className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
-              Demo mode: Supabase is not connected. All dashboard data is mock data.
+              {isDemoMode
+                ? "Demo mode: Supabase is not connected. All dashboard data is mock data."
+                : "Supabase connected. Dashboard data is still mock data for now."}
             </div>
 
             {children}
