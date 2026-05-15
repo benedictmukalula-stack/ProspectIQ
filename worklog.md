@@ -1,22 +1,22 @@
 ---
 Task ID: 1
-Agent: main
-Task: Debug blank preview screen
+Agent: Main Agent
+Task: Restore Phase 2 auth UI — login, signup, forgot-password, verify-email pages
 
 Work Log:
-- Read root layout — clean (no providers, no auth, just html/body/children/Toaster)
-- Read all landing page imports — found window/document usage only in useEffect hooks (safe)
-- Checked use-toast hook — module-level state but SSR safe
-- Set minimal safe page.tsx (plain HTML with inline styles) and stripped layout.tsx (removed Toaster)
-- Built and tested: minimal page returns 200 with visible content
-- Added Toaster back: still works (200, content renders)
-- Restored full landing page with all 10 components: builds clean, all routes 200
-- Tested all 3 routes: / = 133KB, /auth/login = 19KB, /dashboard = 33KB
-- No component crashes found — all landing components render correctly
+- Audited all existing auth files: env.ts, admin.ts, supabase/client.ts, auth/schemas.ts, auth/demo-session.ts, demo-banner.tsx — all already well-structured
+- Identified 3 issues to fix:
+  1. Login form: Zod loginSchema requires password min(8), blocking admin bypass in demo mode (bypass runs after validation). Fix: added demoLoginSchema with relaxed password constraint (min 1 char only)
+  2. Signup form: used router.push (soft navigation) which fails behind Caddy proxy. Fix: replaced with window.location.assign()
+  3. Login page.tsx was still a placeholder. Fix: wired to LoginForm component
+- Updated auth layout.tsx with dark theme background
+- Updated dashboard placeholder to show "Phase 3 coming next"
+- Clean build (rm -rf .next, lint, build) — all passed
+- Started server with nohup, verified all 6 routes return 200 with correct content
 
 Stage Summary:
-- Blank screen was NOT caused by a code crash or broken import
-- All components render correctly — landing page (133KB), login (19KB), dashboard (33KB)
-- The "blank preview" is caused by the standalone server process dying between tool calls
-- Server process survives when started inline in the same bash session, but gets killed otherwise
-- This is a container process lifecycle issue, not a code bug
+- All Phase 2 auth pages restored: /auth/login, /auth/signup, /auth/forgot-password, /auth/verify-email
+- Demo mode banner shows when Supabase env vars missing
+- Admin bypass (benedict.mukalula@gmail.com) works in demo mode with any password
+- No middleware.ts, no auto-redirects, no redirect loops, no blank screens
+- All routes verified via both direct (port 3000) and Caddy proxy (port 81)

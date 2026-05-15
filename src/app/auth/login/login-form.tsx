@@ -17,16 +17,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { isDemoMode, isSupabaseConfigured, supabaseAuth } from "@/lib/supabase/client";
+import { z } from "zod";
 import { loginSchema, type LoginFormData } from "@/lib/auth/schemas";
 import { isAdminEmail } from "@/lib/admin";
 import { setDemoSession } from "@/lib/auth/demo-session";
+
+/**
+ * In demo mode, relax the password constraint so the admin bypass
+ * can fire without being blocked by Zod's min(8) requirement.
+ */
+const demoLoginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 /**
  * Login form — no auto-redirects, no useEffect hooks.
  *
  * Behaviour:
  *  Demo mode (no Supabase):
- *    - Admin email → set sessionStorage demo flag → hard redirect to /dashboard
+ *    - Admin email + any password → sessionStorage flag → hard redirect to /dashboard
  *    - Non-admin email → show inline error: "Demo mode only allows the admin email."
  *  Supabase mode (env vars present):
  *    - Call supabase.auth.signInWithPassword()
@@ -47,7 +57,7 @@ export function LoginForm() {
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(isDemoMode ? demoLoginSchema : loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
