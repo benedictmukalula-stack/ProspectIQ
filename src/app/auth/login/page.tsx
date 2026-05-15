@@ -1,15 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+const ADMIN_EMAIL = "benedict.mukalula@gmail.com";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
+    const normalized = email.trim().toLowerCase();
+
+    if (normalized === ADMIN_EMAIL) {
+      setMessage({ text: "Login successful. Redirecting to dashboard…", ok: true });
+      router.push("/dashboard");
+    } else {
+      setMessage({ text: "Demo mode only allows the admin email.", ok: false });
+    }
   }
 
   return (
@@ -106,12 +117,12 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Success message */}
-        {submitted && (
+        {/* Status message */}
+        {message && (
           <div
             style={{
-              background: "rgba(16, 185, 129, 0.08)",
-              border: "1px solid rgba(16, 185, 129, 0.2)",
+              background: message.ok ? "rgba(16, 185, 129, 0.08)" : "rgba(239, 68, 68, 0.08)",
+              border: message.ok ? "1px solid rgba(16, 185, 129, 0.2)" : "1px solid rgba(239, 68, 68, 0.2)",
               borderRadius: "8px",
               padding: "12px 14px",
               marginBottom: "20px",
@@ -120,12 +131,12 @@ export default function LoginPage() {
             <p
               style={{
                 fontSize: "13px",
-                color: "#34d399",
+                color: message.ok ? "#34d399" : "#f87171",
                 fontWeight: 500,
                 margin: 0,
               }}
             >
-              Login form submitted successfully.
+              {message.text}
             </p>
           </div>
         )}
@@ -153,7 +164,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                setSubmitted(false);
+                setMessage(null);
               }}
               autoComplete="email"
               style={{
@@ -191,7 +202,7 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                setSubmitted(false);
+                setMessage(null);
               }}
               autoComplete="current-password"
               style={{
