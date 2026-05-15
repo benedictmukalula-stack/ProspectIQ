@@ -42,6 +42,8 @@ type QueuedEmail = {
   message: string;
   send_day: number;
   status: string;
+  sender_name?: string | null;
+  sender_email?: string | null;
 };
 
 const mockLeads: Lead[] = [
@@ -110,6 +112,7 @@ export default function EmailPage() {
   const [senderEmail, setSenderEmail] = useState("hello@prospectiq.ai");
   const [loading, setLoading] = useState(!isDemoMode);
   const [launching, setLaunching] = useState(false);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
 
   async function getWorkspace() {
@@ -184,7 +187,7 @@ export default function EmailPage() {
           .order("created_at", { ascending: false }),
         workspace.supabase
           .from("email_queue")
-          .select("id,lead_name,lead_email,company,campaign_name,subject,message,send_day,status")
+          .select("id,lead_name,lead_email,company,campaign_name,subject,message,send_day,status,sender_name,sender_email")
           .eq("organization_id", workspace.organizationId)
           .order("created_at", { ascending: false }),
       ]);
@@ -307,7 +310,7 @@ export default function EmailPage() {
           created_by: workspace.userId,
         }))
       )
-      .select("id,lead_name,lead_email,company,campaign_name,subject,message,send_day,status");
+      .select("id,lead_name,lead_email,company,campaign_name,subject,message,send_day,status,sender_name,sender_email");
 
     if (result.error) {
       setMessage(result.error.message);
@@ -318,6 +321,62 @@ export default function EmailPage() {
     setQueuedEmails((current) => [...(result.data || []), ...current]);
     setMessage(`Campaign queued successfully: ${result.data?.length || 0} email steps prepared.`);
     setLaunching(false);
+  }
+
+
+  async function sendQueuedEmail(email: QueuedEmail) {
+    setSendingEmailId(email.id);
+    setMessage("");
+
+    const fromAddress = email.sender_email || senderEmail;
+    const fromName = email.sender_name || senderName;
+    const formattedFrom = `${fromName} <${fromAddress}>`;
+
+    const response = await fetch("/api/email/send", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        to: email.lead_email,
+        from: formattedFrom,
+        subject: email.subject,
+        message: email.message,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      setMessage(result.error || "Email sending failed.");
+      setSendingEmailId(null);
+      return;
+    }
+
+    if (!isDemoMode) {
+      const workspace = await getWorkspace();
+
+      if (workspace.supabase && workspace.organizationId) {
+        await workspace.supabase
+          .from("email_queue")
+          .update({
+            status: "Sent",
+            provider_message_id: result.id || null,
+            sent_at: new Date().toISOString(),
+          })
+          .eq("id", email.id)
+          .eq("organization_id", workspace.organizationId);
+      }
+    }
+
+    setQueuedEmails((current) =>
+      current.map((item) =>
+        item.id === email.id ? { ...item, status: "Sent" } : item
+      )
+    );
+
+    setMessage(`Email sent to ${email.lead_email}.`);
+    setSendingEmailId(null);
   }
 
   return (
@@ -431,7 +490,22 @@ export default function EmailPage() {
                   <p className="mt-3 text-sm text-slate-500">{email.message}</p>
                 </div>
 
-                <span className="text-xs text-slate-500">{email.campaign_name}</span>
+                <div className="flex flex-col items-start gap-3 md:items-end">
+                  <span className="text-xs text-slate-500">{email.campaign_name}</span>
+
+                  <button
+                    type="button"
+                    disabled={email.status === "Sent" || sendingEmailId === email.id}
+                    onClick={() => sendQueuedEmail(email)}
+                    className="rounded-lg border border-emerald-400/30 px-3 py-2 text-xs text-emerald-300 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {sendingEmailId === email.id
+                      ? "Sending..."
+                      : email.status === "Sent"
+                        ? "Sent"
+                        : "Send Now"}
+                  </button>
+                </div>
               </div>
             </div>
           ))}
