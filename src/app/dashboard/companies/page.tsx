@@ -26,6 +26,19 @@ type CompanyProfile = {
   contacts: Lead[];
 };
 
+type ExternalEnrichment = {
+  provider: string;
+  company: string;
+  website?: string | null;
+  industry?: string;
+  size_estimate?: string;
+  region?: string;
+  confidence?: number;
+  signals?: string[];
+  provider_error?: string;
+  raw?: unknown;
+};
+
 const mockLeads: Lead[] = [
   {
     id: "1",
@@ -88,6 +101,8 @@ export default function CompaniesPage() {
   const [message, setMessage] = useState("");
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [insights, setInsights] = useState<string[]>([]);
+  const [externalEnrichment, setExternalEnrichment] = useState<ExternalEnrichment | null>(null);
+  const [enrichingCompany, setEnrichingCompany] = useState<string | null>(null);
 
   async function getWorkspace() {
     const supabase = createBrowserSupabaseClient();
@@ -193,10 +208,35 @@ export default function CompaniesPage() {
       .sort((a, b) => b.averageScore - a.averageScore);
   }, [leads]);
 
-  function handleEnrich(company: CompanyProfile) {
+  async function handleEnrich(company: CompanyProfile) {
     setSelectedCompany(company.company);
     setInsights(enrichCompany(company));
+    setExternalEnrichment(null);
+    setEnrichingCompany(company.company);
+    setMessage("");
+
+    const response = await fetch("/api/enrichment/company", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        company: company.company,
+        email: company.contacts[0]?.email || undefined,
+      }),
+    });
+
+    const data = (await response.json()) as ExternalEnrichment | { error: string };
+
+    if (!response.ok || "error" in data) {
+      setMessage("External enrichment failed.");
+      setEnrichingCompany(null);
+      return;
+    }
+
+    setExternalEnrichment(data);
     setMessage(`Generated enrichment insights for ${company.company}.`);
+    setEnrichingCompany(null);
   }
 
   return (
@@ -223,6 +263,34 @@ export default function CompaniesPage() {
               <li key={insight}>{insight}</li>
             ))}
           </ul>
+
+          {externalEnrichment && (
+            <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/60 p-4">
+              <p className="font-semibold text-white">External enrichment</p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <p>Provider: {externalEnrichment.provider}</p>
+                <p>Confidence: {externalEnrichment.confidence || "Unknown"}</p>
+                <p>Industry: {externalEnrichment.industry || "Unknown"}</p>
+                <p>Size: {externalEnrichment.size_estimate || "Unknown"}</p>
+                <p>Region: {externalEnrichment.region || "Unknown"}</p>
+                <p>Website: {externalEnrichment.website || "Unknown"}</p>
+              </div>
+
+              {externalEnrichment.provider_error && (
+                <p className="mt-3 text-amber-200">
+                  Provider note: {externalEnrichment.provider_error}
+                </p>
+              )}
+
+              {externalEnrichment.signals && (
+                <ul className="mt-3 list-disc space-y-1 pl-5">
+                  {externalEnrichment.signals.map((signal) => (
+                    <li key={signal}>{signal}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -312,10 +380,11 @@ export default function CompaniesPage() {
 
             <button
               type="button"
+              disabled={enrichingCompany === company.company}
               onClick={() => handleEnrich(company)}
-              className="mt-5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white"
+              className="mt-5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Enrich Company
+              {enrichingCompany === company.company ? "Enriching..." : "Enrich Company"}
             </button>
           </div>
         ))}
