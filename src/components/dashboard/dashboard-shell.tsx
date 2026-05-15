@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { supabaseAuth, isDemoMode } from "@/lib/supabase/client";
+import { createBrowserSupabaseClient, isDemoMode, supabaseAuth } from "@/lib/supabase/client";
 
 const navItems = [
   { label: "Overview", href: "/dashboard" },
@@ -16,43 +16,60 @@ const navItems = [
   { label: "Settings", href: "/dashboard/settings" },
 ];
 
-export default function DashboardShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [userEmail, setUserEmail] = useState("benedict.mukalula@gmail.com");
-  const [authStatus, setAuthStatus] = useState(
-    isDemoMode ? "Demo Mode" : "Checking session..."
-  );
+export default function DashboardShell({ children }: { children: React.ReactNode }) {
+  const [userEmail, setUserEmail] = useState("Guest user");
+  const [authStatus, setAuthStatus] = useState(isDemoMode ? "Demo Mode" : "Checking session...");
+  const [workspaceName, setWorkspaceName] = useState("Demo Workspace");
+  const [userRole, setUserRole] = useState("No role");
 
   useEffect(() => {
-    async function loadSession() {
+    async function loadProfile() {
       if (isDemoMode) {
+        setUserEmail("benedict.mukalula@gmail.com");
         setAuthStatus("Demo Mode");
+        setWorkspaceName("Demo Workspace");
+        setUserRole("owner");
         return;
       }
 
-      const result = await supabaseAuth.getUser();
+      const userResult = await supabaseAuth.getUser();
 
-      if (result.error || !result.data.user) {
+      if (userResult.error || !userResult.data.user) {
         setAuthStatus("No active session");
         setUserEmail("Guest user");
+        setWorkspaceName("No workspace");
+        setUserRole("No role");
         return;
       }
 
-      setUserEmail(result.data.user.email || "Authenticated user");
+      const user = userResult.data.user;
+      const email = user.email || "Authenticated user";
+
+      setUserEmail(email);
       setAuthStatus("Authenticated");
+
+      const supabase = createBrowserSupabaseClient();
+      if (!supabase) return;
+
+      const workspaceResult = await supabase.rpc("ensure_user_workspace");
+
+      if (workspaceResult.error || !workspaceResult.data?.[0]) {
+        setWorkspaceName("Workspace setup failed");
+        setUserRole("RPC failed");
+        return;
+      }
+
+      const workspace = workspaceResult.data[0];
+
+      setWorkspaceName(workspace.organization_name || "ProspectIQ Workspace");
+      setUserRole(workspace.user_role || "owner");
     }
 
-    loadSession();
+    loadProfile();
   }, []);
 
   async function handleLogout() {
-    if (!isDemoMode) {
-      await supabaseAuth.signOut();
-    }
-
+    if (!isDemoMode) await supabaseAuth.signOut();
     window.location.href = "/auth/login";
   }
 
@@ -64,9 +81,7 @@ export default function DashboardShell({
             <h1 className="text-2xl font-bold">ProspectIQ</h1>
           </Link>
 
-          <p className="mt-1 text-sm text-slate-400">
-            B2B Intelligence Platform
-          </p>
+          <p className="mt-1 text-sm text-slate-400">B2B Intelligence Platform</p>
 
           <nav className="mt-10 space-y-2 text-sm">
             {navItems.map((item) => (
@@ -85,16 +100,14 @@ export default function DashboardShell({
           <header className="border-b border-white/10 bg-slate-950/80 p-6">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
-                <p className="text-sm text-slate-400">Demo Workspace</p>
-                <h2 className="text-xl font-semibold">
-                  ProspectIQ Control Center
-                </h2>
+                <p className="text-sm text-slate-400">{workspaceName}</p>
+                <h2 className="text-xl font-semibold">ProspectIQ Control Center</h2>
               </div>
 
               <div className="flex flex-col gap-3 md:flex-row md:items-center">
                 <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-300">
                   <p>{userEmail}</p>
-                  <p className="mt-1 text-xs text-slate-500">{authStatus}</p>
+                  <p className="mt-1 text-xs text-slate-500">{authStatus} · {userRole}</p>
                 </div>
 
                 <button
@@ -111,7 +124,7 @@ export default function DashboardShell({
             <div className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
               {isDemoMode
                 ? "Demo mode: Supabase is not connected. All dashboard data is mock data."
-                : "Supabase connected. Dashboard data is still mock data for now."}
+                : "Supabase connected. Profile and workspace are live. Dashboard metrics are still mock data."}
             </div>
 
             {children}
