@@ -20,6 +20,7 @@ const navItems = [
   ["Reports", "/dashboard/reports"],
   ["Analytics", "/dashboard/analytics"],
   ["Team", "/dashboard/team"],
+  ["Billing", "/dashboard/billing"],
   ["Settings", "/dashboard/settings"],
 ];
 
