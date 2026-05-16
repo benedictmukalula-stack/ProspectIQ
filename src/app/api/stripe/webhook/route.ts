@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
       const customerId = session.customer as string | null
       const subscriptionId = session.subscription as string | null
-      const userId = session.metadata?.user_id || null
+      let userId = session.metadata?.user_id || null
 
       console.log("Checkout session:", { customerId, subscriptionId, userId })
 
@@ -65,6 +65,7 @@ export async function POST(req: Request) {
       }
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      userId = userId || subscription.metadata?.user_id || null
       const priceId = subscription.items.data[0]?.price.id
       const plan = getPlanFromPrice(priceId)
 

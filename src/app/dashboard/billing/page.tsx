@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { createClient } from "@supabase/supabase-js"
 
 const plans = [
   {
@@ -29,6 +30,11 @@ const plans = [
   },
 ]
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+)
+
 export default function BillingPage() {
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -36,7 +42,16 @@ export default function BillingPage() {
     try {
       setLoading(plan)
 
-      const response = await fetch(endpoint, { method: "POST" })
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${session?.access_token || ""}`,
+        },
+      })
       const data = await response.json()
 
       if (data?.url) {
