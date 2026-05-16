@@ -1,7 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
+import { PlanBadge } from "@/components/billing/plan-badge"
 
 const plans = [
   {
@@ -37,6 +38,32 @@ const supabase = createClient(
 
 export default function BillingPage() {
   const [loading, setLoading] = useState<string | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<any>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadCurrentPlan() {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const response = await fetch("/api/billing/current-plan", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: session?.user?.id,
+        }),
+      })
+
+      const data = await response.json()
+      setUserEmail(session?.user?.email || null)
+      setCurrentPlan(data)
+    }
+
+    loadCurrentPlan()
+  }, [])
 
   async function startCheckout(endpoint: string, plan: string) {
     try {
@@ -85,10 +112,28 @@ export default function BillingPage() {
     <main className="space-y-8">
       <div>
         <h1 className="text-2xl font-semibold">Billing</h1>
-        <p className="text-sm text-muted-foreground">
-          Choose a plan, manage your subscription, update payment methods, and view invoices.
-        </p>
+        <div className="mt-2 flex items-center gap-3">
+          <p className="text-sm text-muted-foreground">
+            Choose a plan, manage your subscription, update payment methods, and view invoices.
+          </p>
+          <PlanBadge plan={currentPlan?.plan} status={currentPlan?.status} />
+        </div>
       </div>
+
+      <section className="rounded-xl border p-6">
+        <h2 className="text-lg font-semibold">Current account</h2>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+          <span className="text-muted-foreground">User:</span>
+          <span>{userEmail || "Not loaded"}</span>
+          <span className="text-muted-foreground">Plan:</span>
+          <PlanBadge plan={currentPlan?.plan} status={currentPlan?.status} />
+          {currentPlan?.current_period_end && (
+            <span className="text-muted-foreground">
+              Renews: {new Date(currentPlan.current_period_end).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      </section>
 
       <section className="grid gap-4 md:grid-cols-3">
         {plans.map((plan) => (
