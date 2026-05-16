@@ -1,36 +1,31 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { runAI } from "@/lib/ai/provider"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-function generateMockAIOutput(actionType: string, contact: any) {
-  switch (actionType) {
-    case "lead_score":
-      return {
-        score: 87,
-        reasoning:
-          "Strong operational role, enterprise company profile, and high CRM automation fit.",
-        recommendation:
-          "Prioritize for outbound discovery sequence.",
-      }
+function buildWorkflowPrompt(workflow: any, contact: any) {
+  const companyName = contact?.crm_companies?.name || "Unknown company"
 
-    case "email_draft":
-      return {
-        subject: `Improving sales intelligence workflows at ${contact?.company || "your company"}`,
-        body:
-          `Hi ${contact?.first_name || "there"},\n\n` +
-          `I noticed your role in operations and thought ProspectIQ could help streamline prospect research, enrichment, and outbound workflows.\n\n` +
-          `Would you be open to a short introduction call?\n\nRegards,\nProspectIQ`,
-      }
+  return `
+Workflow: ${workflow.name}
+Action type: ${workflow.action_type}
+Prompt template: ${workflow.prompt_template || "No template provided"}
 
-    default:
-      return {
-        message: "Workflow executed successfully.",
-      }
-  }
+Contact:
+- First name: ${contact?.first_name || "Unknown"}
+- Last name: ${contact?.last_name || "Unknown"}
+- Title: ${contact?.title || "Unknown"}
+- Email: ${contact?.email || "Unknown"}
+- Company: ${companyName}
+- Lead score: ${contact?.score ?? "Unknown"}
+- Status: ${contact?.status || "Unknown"}
+
+Return a concise, structured sales intelligence output.
+`
 }
 
 export async function POST(req: Request) {
@@ -86,10 +81,16 @@ export async function POST(req: Request) {
       throw new Error(runError?.message || "Failed to create workflow run")
     }
 
-    const output = generateMockAIOutput(workflow.action_type, {
-      first_name: contact?.first_name,
-      company: contact?.crm_companies?.name,
+    const aiResult = await runAI({
+      prompt: buildWorkflowPrompt(workflow, contact),
     })
+
+    const output = {
+      provider: aiResult.provider,
+      model: aiResult.model,
+      content: aiResult.content,
+      usage: aiResult.usage,
+    }
 
     const { data: updatedRun, error: updateError } = await supabaseAdmin
       .from("ai_workflow_runs")
