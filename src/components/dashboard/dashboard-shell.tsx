@@ -13,6 +13,7 @@ const navItems = [
   { label: "Campaigns", href: "/dashboard/campaigns" },
   { label: "Analytics", href: "/dashboard/analytics" },
   { label: "AI Assistant", href: "/dashboard/ai-assistant" },
+  { label: "Billing", href: "/dashboard/billing" },
   { label: "Settings", href: "/dashboard/settings" },
 ];
 
