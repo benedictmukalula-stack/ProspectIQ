@@ -40,10 +40,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
-      <div className="grid min-h-screen lg:grid-cols-[290px_1fr]">
-        <aside className="border-r border-white/10 bg-slate-950 p-6">
-          <div className="mb-8">
+    <div className="min-h-screen overflow-x-hidden bg-slate-950 text-white">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <aside className="max-h-screen overflow-y-auto border-r border-white/10 bg-slate-950 p-5 lg:sticky lg:top-0">
+          <div className="mb-6">
             <h1 className="text-2xl font-bold">ProspectIQ</h1>
             <p className="mt-1 text-sm text-slate-400">
               AI Sales Intelligence Platform
@@ -70,7 +70,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             })}
           </nav>
 
-          <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
               Workspace
             </p>
@@ -88,7 +88,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <main className="p-6 lg:p-8">{children}</main>
+        <main className="min-w-0 overflow-x-hidden p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto w-full max-w-7xl">{children}</div>
+        </main>
       </div>
     </div>
   );
