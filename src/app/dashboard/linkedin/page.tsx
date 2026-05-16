@@ -74,7 +74,7 @@ function inferDesignation(lines: string[]) {
 }
 
 function inferCompany(lines: string[]) {
-  const atLine = lines.find((line) => /\sat\s/i.test(line);
+  const atLine = lines.find((line) => /\sat\s/i.test(line));
   if (atLine) return atLine.split(/\sat\s/i).pop()?.trim() || "";
 
   return (
