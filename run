@@ -1,0 +1,40 @@
+▲ Next.js 16.1.3 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.195.22:3000
+- Environments: .env
+
+✓ Starting...
+✓ Ready in 5.1s
+○ Compiling /dashboard/linkedin ...
+ GET /dashboard/linkedin 200 in 5.8s (compile: 5.2s, render: 588ms)
+ POST /api/linkedin/enrich 403 in 5.7s (compile: 3.3s, render: 2.3s)
+ GET /dashboard/ai-assistant 200 in 3.9s (compile: 3.4s, render: 498ms)
+ GET /dashboard/leads 200 in 3.2s (compile: 2.8s, render: 394ms)
+ GET /dashboard/ai-assistant 200 in 119ms (compile: 31ms, render: 88ms)
+ GET /dashboard/ai-assistant 200 in 812ms (compile: 51ms, render: 761ms)
+ GET /dashboard/leads 200 in 414ms (compile: 167ms, render: 247ms)
+ GET /dashboard/leads 200 in 454ms (compile: 56ms, render: 398ms)
+ GET /dashboard/leads 200 in 858ms (compile: 293ms, render: 564ms)
+ GET /dashboard/leads 200 in 645ms (compile: 294ms, render: 351ms)
+ GET /dashboard/ai-assistant 200 in 99ms (compile: 35ms, render: 64ms)
+ GET /dashboard/ai-assistant 200 in 1103ms (compile: 630ms, render: 473ms)
+ GET /dashboard/ai-assistant 200 in 873ms (compile: 272ms, render: 602ms)
+ GET /dashboard/ai-assistant 200 in 1097ms (compile: 314ms, render: 783ms)
+ GET /dashboard/ai-assistant 200 in 952ms (compile: 318ms, render: 635ms)
+ GET /dashboard/leads 200 in 186ms (compile: 51ms, render: 135ms)
+ GET /dashboard/linkedin 200 in 211ms (compile: 120ms, render: 91ms)
+ GET /dashboard/companies 200 in 2.2s (compile: 2.1s, render: 139ms)
+ GET /dashboard/crm/pipeline 200 in 342ms (compile: 186ms, render: 156ms)
+○ Compiling /dashboard/workflows ...
+✓ Finished filesystem cache database compaction in 11.7s
+ GET /dashboard/workflows 200 in 11.1s (compile: 10.4s, render: 721ms)
+ GET /dashboard/email 200 in 532ms (compile: 374ms, render: 159ms)
+ GET /dashboard/campaigns 200 in 2.8s (compile: 2.3s, render: 514ms)
+ GET /dashboard/campaigns 200 in 1241ms (compile: 339ms, render: 901ms)
+ GET /dashboard/tasks 200 in 1981ms (compile: 1757ms, render: 224ms)
+ GET /dashboard/notifications 200 in 1399ms (compile: 960ms, render: 439ms)
+○ Compiling /dashboard/reports ...
+ GET /dashboard/reports 200 in 6.3s (compile: 6.1s, render: 228ms)
+ GET /dashboard/analytics 200 in 517ms (compile: 339ms, render: 178ms)
+ GET /dashboard/team 200 in 3.7s (compile: 3.3s, render: 462ms)
+ GET /dashboard/settings 200 in 1640ms (compile: 1291ms, render: 348ms)
