@@ -16,6 +16,7 @@ const navigation = [
   ["Analytics", "/dashboard/analytics"],
   ["Team", "/dashboard/team"],
   ["Billing", "/dashboard/billing"],
+  ["Usage", "/dashboard/usage"],
   ["Settings", "/dashboard/settings"],
 ]
 

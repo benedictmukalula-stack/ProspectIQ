@@ -85,7 +85,7 @@ export async function POST(req: Request) {
           plan,
           status: subscription.status,
           current_period_end: new Date(
-            subscription.current_period_end * 1000
+            Number((subscription as any).current_period_end || 0) * 1000
           ).toISOString(),
         },
         { onConflict: "stripe_subscription_id" }
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
           plan,
           status: subscription.status,
           current_period_end: new Date(
-            subscription.current_period_end * 1000
+            Number((subscription as any).current_period_end || 0) * 1000
           ).toISOString(),
         })
         .eq("stripe_subscription_id", subscription.id)
