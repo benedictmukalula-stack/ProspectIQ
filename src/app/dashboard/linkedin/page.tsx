@@ -74,14 +74,14 @@ function inferDesignation(lines: string[]) {
 }
 
 function inferCompany(lines: string[]) {
-  const atLine = lines.find((line) => /\sat\s/i.test(line));
+  const atLine = lines.find((line) => /\sat\s/i.test(line);
   if (atLine) return atLine.split(/\sat\s/i).pop()?.trim() || "";
 
-  const companyLine = lines.find((line) =>
-    /(freight|logistics|cargo|trade|export|import|procurement|supply|solutions|group|limited|ltd|pty)/i.test(line)
+  return (
+    lines.find((line) =>
+      /(freight|logistics|cargo|trade|export|import|procurement|supply|solutions|group|limited|ltd|pty)/i.test(line)
+    ) || ""
   );
-
-  return companyLine || "";
 }
 
 function inferLocation(lines: string[]) {
@@ -101,7 +101,19 @@ function inferLocation(lines: string[]) {
   if (lower.includes("nigeria")) country = "Nigeria";
   if (lower.includes("ghana")) country = "Ghana";
 
-  const cities = ["Johannesburg", "Sandton", "Cape Town", "Durban", "Lusaka", "Ndola", "Kitwe", "Nairobi", "Lagos", "Accra"];
+  const cities = [
+    "Johannesburg",
+    "Sandton",
+    "Cape Town",
+    "Durban",
+    "Lusaka",
+    "Ndola",
+    "Kitwe",
+    "Nairobi",
+    "Lagos",
+    "Accra",
+  ];
+
   const city = cities.find((item) => lower.includes(item.toLowerCase())) || "";
 
   return { country, city };
@@ -115,10 +127,12 @@ export default function LinkedInSearchPage() {
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [industry, setIndustry] = useState("");
+  const [directUrl, setDirectUrl] = useState("");
   const [publicProfileText, setPublicProfileText] = useState("");
   const [leadForm, setLeadForm] = useState(emptyLead);
   const [leads, setLeads] = useState<LinkedInLead[]>([]);
   const [savingToCrmId, setSavingToCrmId] = useState<string | null>(null);
+  const [enriching, setEnriching] = useState(false);
   const [message, setMessage] = useState("");
 
   const searchQueries = useMemo(() => {
@@ -199,6 +213,57 @@ export default function LinkedInSearchPage() {
     setMessage("Public profile text extracted into the capture form.");
   }
 
+  async function enrichLinkedInProfile(url: string) {
+    if (!url.trim()) {
+      setMessage("Paste a LinkedIn profile URL first.");
+      return;
+    }
+
+    setEnriching(true);
+    setMessage("");
+
+    const response = await fetch("/api/linkedin/enrich", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ linkedinUrl: url.trim() }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      setMessage(data.error || "LinkedIn enrichment failed.");
+      setEnriching(false);
+      return;
+    }
+
+    const profile = data.profile;
+
+    const enrichedLead: LinkedInLead = {
+      id: crypto.randomUUID(),
+      first_name: profile.first_name || "",
+      middle_name: "",
+      last_name: profile.last_name || "",
+      company_name: profile.company || "",
+      designation: profile.title || profile.occupation || profile.headline || "",
+      phone_number: profile.phones?.[0] || "",
+      mobile_number: profile.phones?.[0] || "",
+      email: profile.emails?.[0] || "",
+      linkedin_url: profile.linkedin_url || url,
+      country: profile.country || "",
+      city: profile.city || "",
+      comments: profile.summary || profile.headline || "",
+      source: "Proxycurl enrichment",
+    };
+
+    setLeads((current) => [enrichedLead, ...current]);
+    setLeadForm(enrichedLead);
+    setDirectUrl("");
+    setMessage("LinkedIn profile enriched successfully.");
+    setEnriching(false);
+  }
+
   function addLead(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -236,7 +301,9 @@ export default function LinkedInSearchPage() {
       return;
     }
 
-    const fullName = [lead.first_name, lead.middle_name, lead.last_name].filter(Boolean).join(" ");
+    const fullName = [lead.first_name, lead.middle_name, lead.last_name]
+      .filter(Boolean)
+      .join(" ");
 
     const result = await workspace.supabase
       .from("leads")
@@ -318,9 +385,9 @@ export default function LinkedInSearchPage() {
     <div>
       <div className="mb-8">
         <p className="text-sm text-slate-400">ProspectIQ Research</p>
-        <h1 className="mt-2 text-3xl font-bold">LinkedIn Lead Search & Capture Engine</h1>
+        <h1 className="mt-2 text-3xl font-bold">LinkedIn Lead Intelligence Engine</h1>
         <p className="mt-2 text-slate-400">
-          Build advanced LinkedIn searches, extract publicly visible profile text, capture contact fields, and save qualified leads into CRM.
+          Search, enrich via Proxycurl, capture public profile data, and save qualified leads into CRM.
         </p>
       </div>
 
@@ -331,7 +398,29 @@ export default function LinkedInSearchPage() {
       )}
 
       <div className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-5 text-sm text-amber-100">
-        This module only processes publicly visible/manual profile details you provide. It does not bypass LinkedIn login, scrape restricted pages, or extract private contact data.
+        This module uses approved API enrichment and public/manual profile input. It does not bypass LinkedIn login, scrape restricted pages, or evade LinkedIn protections.
+      </div>
+
+      <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6">
+        <h2 className="mb-5 text-lg font-semibold">Direct Proxycurl Enrichment</h2>
+
+        <div className="flex flex-col gap-3 md:flex-row">
+          <input
+            className="flex-1 rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none"
+            placeholder="Paste LinkedIn profile URL"
+            value={directUrl}
+            onChange={(event) => setDirectUrl(event.target.value)}
+          />
+
+          <button
+            type="button"
+            disabled={enriching}
+            onClick={() => enrichLinkedInProfile(directUrl)}
+            className="rounded-xl bg-emerald-500 px-5 py-3 text-sm font-medium text-white disabled:opacity-60"
+          >
+            {enriching ? "Enriching..." : "Enrich Profile"}
+          </button>
+        </div>
       </div>
 
       <div className="mb-8 rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -379,7 +468,7 @@ export default function LinkedInSearchPage() {
 
         <textarea
           className="min-h-40 w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none"
-          placeholder="Paste publicly visible profile text here. Example: name, headline, company, location, publicly listed email/phone, and LinkedIn URL."
+          placeholder="Paste publicly visible profile text here."
           value={publicProfileText}
           onChange={(event) => setPublicProfileText(event.target.value)}
         />

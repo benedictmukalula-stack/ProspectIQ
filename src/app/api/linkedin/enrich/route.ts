@@ -36,6 +36,13 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: data?.message || "Proxycurl enrichment failed." },
+        { status: response.status }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       profile: {
@@ -48,7 +55,7 @@ export async function POST(request: NextRequest) {
         country: data.country_full_name || "",
         city: data.city || "",
         company: data.experiences?.[0]?.company || "",
-        title: data.experiences?.[0]?.title || "",
+        title: data.experiences?.[0]?.title || data.occupation || "",
         linkedin_url: data.public_identifier
           ? `https://www.linkedin.com/in/${data.public_identifier}`
           : linkedinUrl,
@@ -62,13 +69,9 @@ export async function POST(request: NextRequest) {
       },
       raw: data,
     });
-  } catch (error) {
-    console.error(error);
-
+  } catch {
     return NextResponse.json(
-      {
-        error: "LinkedIn enrichment failed.",
-      },
+      { error: "LinkedIn enrichment failed." },
       { status: 500 }
     );
   }
