@@ -19,8 +19,7 @@ export async function POST(req: Request) {
       .select(`
         *,
         crm_contacts(email, first_name, last_name),
-        outbound_sequences(name),
-        outbound_sequence_steps(*)
+        outbound_sequences(name)
       `)
       .eq("workspace_id", workspaceId)
       .eq("status", "active")
@@ -31,9 +30,14 @@ export async function POST(req: Request) {
     const queued: string[] = []
 
     for (const enrollment of enrollments || []) {
-      const steps = enrollment.outbound_sequence_steps || []
-      const step = steps.find((s: any) => Number(s.step_order) === Number(enrollment.current_step))
+      const { data: step, error: stepError } = await supabaseAdmin
+        .from("outbound_sequence_steps")
+        .select("*")
+        .eq("sequence_id", enrollment.sequence_id)
+        .eq("step_order", enrollment.current_step)
+        .maybeSingle()
 
+      if (stepError) throw new Error(stepError.message)
       if (!step) continue
 
       const { data: existing } = await supabaseAdmin
@@ -45,11 +49,12 @@ export async function POST(req: Request) {
 
       if (existing) continue
 
-      const contactName = [enrollment.crm_contacts?.first_name, enrollment.crm_contacts?.last_name]
-        .filter(Boolean)
-        .join(" ") || "there"
+      const contactName =
+        [enrollment.crm_contacts?.first_name, enrollment.crm_contacts?.last_name]
+          .filter(Boolean)
+          .join(" ") || "there"
 
-      const body = step.body.replaceAll("Hi there", `Hi ${contactName}`)
+      const body = String(step.body || "").replaceAll("Hi there", `Hi ${contactName}`)
 
       const { data: queuedItem, error: queueError } = await supabaseAdmin
         .from("outbound_send_queue")
@@ -75,7 +80,7 @@ export async function POST(req: Request) {
 
       if (queueError) throw new Error(queueError.message)
 
-      queued.push(queuedItem.id)
+      queued.push(String(queuedItem.id))
 
       await supabaseAdmin.from("activity_timeline").insert({
         workspace_id: workspaceId,
