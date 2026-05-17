@@ -65,6 +65,32 @@ export async function POST(req: Request) {
         .eq("id", reply.id)
     }
 
+    if (
+      ["unsubscribe", "not_now"].includes(intelligence.classification) &&
+      contactId
+    ) {
+      await supabaseAdmin
+        .from("outbound_enrollments")
+        .update({
+          status: "paused",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("workspace_id", workspaceId)
+        .eq("contact_id", contactId)
+
+      await supabaseAdmin.from("activity_timeline").insert({
+        workspace_id: workspaceId,
+        contact_id: contactId,
+        activity_type: "sequence_paused",
+        title: "Sequence paused by reply intelligence",
+        description: `Sequence paused because reply was classified as ${intelligence.classification}.`,
+        metadata: {
+          reply_id: reply.id,
+          classification: intelligence.classification,
+        },
+      })
+    }
+
     await supabaseAdmin.from("activity_timeline").insert({
       workspace_id: workspaceId,
       contact_id: contactId || null,
