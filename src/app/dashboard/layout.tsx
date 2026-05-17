@@ -14,6 +14,7 @@ const navigation = [
   ["Outbound", "/dashboard/outbound"],
   ["Campaigns", "/dashboard/campaigns"],
   ["Tasks", "/dashboard/tasks"],
+  ["Activity", "/dashboard/activity"],
   ["Notifications", "/dashboard/notifications"],
   ["Reports", "/dashboard/reports"],
   ["Analytics", "/dashboard/analytics"],

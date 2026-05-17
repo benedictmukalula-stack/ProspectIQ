@@ -67,6 +67,31 @@ export async function POST(req: Request) {
       notes: "Discuss CRM automation, enrichment, and outbound campaign needs.",
     })
 
+    await supabaseAdmin.from("automation_events").insert({
+      workspace_id: workspaceId,
+      event_type: "contact_created",
+      entity_type: "contact",
+      entity_id: contact.id,
+      payload: {
+        source: "crm_seed",
+        contact_id: contact.id,
+      },
+      status: "pending",
+    })
+
+    await supabaseAdmin.from("activity_timeline").insert({
+      workspace_id: workspaceId,
+      contact_id: contact.id,
+      company_id: company.id,
+      activity_type: "contact_created",
+      title: "New CRM contact created",
+      description: "A new contact was added and automation was queued.",
+      metadata: {
+        contact_id: contact.id,
+        company_id: company.id,
+      },
+    })
+
     return NextResponse.json({ ok: true, company, contact })
   } catch (error) {
     return NextResponse.json(
