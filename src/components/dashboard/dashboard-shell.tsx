@@ -95,7 +95,54 @@ export default function DashboardShell({ children }: { children: React.ReactNode
               </Link>
             ))}
           </nav>
-        </aside>
+        
+        <div className="mt-auto border-t p-4">
+          <div className="rounded-xl border bg-muted/30 p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-black text-sm font-semibold text-white">
+                BM
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">
+                  Benedict Mukalula
+                </p>
+
+                <p className="truncate text-xs text-muted-foreground">
+                  benedict.mukalula@gmail.com
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border bg-background p-2">
+                <p className="text-muted-foreground">Plan</p>
+                <p className="font-semibold text-green-600">
+                  Business
+                </p>
+              </div>
+
+              <div className="rounded-lg border bg-background p-2">
+                <p className="text-muted-foreground">Status</p>
+                <p className="font-semibold">
+                  Active
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-lg border bg-background p-3">
+              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                Workspace
+              </p>
+
+              <p className="mt-1 text-sm font-medium">
+                ProspectIQ Executive Workspace
+              </p>
+            </div>
+          </div>
+        </div>
+
+</aside>
 
         <section className="flex-1">
           <header className="border-b border-white/10 bg-slate-950/80 p-6">

@@ -35,7 +35,7 @@ export default function DashboardLayout({
 }) {
   return (
     <div className="flex min-h-screen">
-      <aside className="w-64 border-r bg-black text-white p-6">
+      <aside className="flex w-64 flex-col border-r bg-black p-6 text-white">
         <div className="mb-8">
           <h1 className="text-2xl font-bold">ProspectIQ</h1>
           <p className="text-sm text-zinc-400">
@@ -54,6 +54,38 @@ export default function DashboardLayout({
             </Link>
           ))}
         </nav>
+
+        <div className="mt-auto border-t border-zinc-800 pt-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-semibold text-black">
+                BM
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-white">
+                  Benedict Mukalula
+                </p>
+                <p className="truncate text-xs text-zinc-400">
+                  benedict.mukalula@gmail.com
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+              <div className="rounded-lg border border-zinc-800 bg-black p-2">
+                <p className="text-zinc-500">Plan</p>
+                <p className="font-semibold text-emerald-400">Business</p>
+              </div>
+
+              <div className="rounded-lg border border-zinc-800 bg-black p-2">
+                <p className="text-zinc-500">Status</p>
+                <p className="font-semibold text-white">Active</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </aside>
 
       <main className="flex-1 p-8 bg-background">
