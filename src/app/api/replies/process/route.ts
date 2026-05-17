@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { classifyReply } from "@/lib/ai/reply-intelligence"
 import { generateFollowUpDraft } from "@/lib/replies/follow-up"
+import { calculateLeadScore } from "@/lib/crm/score-contact"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -73,6 +74,53 @@ export async function POST(req: Request) {
         .eq("id", reply.id)
     }
 
+    const scoring = calculateLeadScore(
+      intelligence.classification
+    )
+
+    let updatedContact = null
+
+    if (contactId) {
+      const { data: contact } = await supabaseAdmin
+        .from("crm_contacts")
+        .select("*")
+        .eq("id", contactId)
+        .single()
+
+      if (contact) {
+        const nextScore =
+          (contact.lead_score || 0) + scoring.scoreDelta
+
+        const { data: updated } = await supabaseAdmin
+          .from("crm_contacts")
+          .update({
+            lead_score: nextScore,
+            lifecycle_stage: scoring.lifecycleStage,
+            hot_lead: scoring.hotLead,
+          })
+          .eq("id", contactId)
+          .select("*")
+          .single()
+
+        updatedContact = updated
+
+        await supabaseAdmin.from("activity_timeline").insert({
+          workspace_id: workspaceId,
+          contact_id: contactId,
+          activity_type: "lead_score_updated",
+          title: "Lead score updated",
+          description:
+            `Lead score changed by ${scoring.scoreDelta} and stage moved to ${scoring.lifecycleStage}.`,
+          metadata: {
+            classification: intelligence.classification,
+            score_delta: scoring.scoreDelta,
+            lifecycle_stage: scoring.lifecycleStage,
+            hot_lead: scoring.hotLead,
+          },
+        })
+      }
+    }
+
     const draft = generateFollowUpDraft({
       classification: intelligence.classification,
       body,
@@ -140,6 +188,8 @@ export async function POST(req: Request) {
       task,
       followUpDraftCreated: Boolean(followUpDraft?.id),
       followUpDraft,
+      updatedContact,
+      scoring,
     })
   } catch (error) {
     return NextResponse.json(
