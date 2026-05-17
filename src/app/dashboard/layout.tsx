@@ -15,6 +15,7 @@ const navigation = [
   ["Sequences", "/dashboard/sequences"],
   ["Send Queue", "/dashboard/send-queue"],
   ["Engagement", "/dashboard/engagement"],
+  ["Replies", "/dashboard/replies"],
   ["Campaigns", "/dashboard/campaigns"],
   ["Tasks", "/dashboard/tasks"],
   ["Activity", "/dashboard/activity"],
