@@ -24,7 +24,7 @@ export async function POST(req: Request) {
 
     if (error) throw new Error(error.message)
 
-    const processed = []
+    const processed: string[] = []
 
     for (const event of events || []) {
       if (event.event_type === "contact_created" && event.entity_id) {
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         })
         .eq("id", event.id)
 
-      processed.push(event.id)
+      processed.push(String(event.id))
     }
 
     return NextResponse.json({ processed })
