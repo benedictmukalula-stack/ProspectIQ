@@ -14,6 +14,7 @@ const navigation = [
   ["Outbound", "/dashboard/outbound"],
   ["Sequences", "/dashboard/sequences"],
   ["Send Queue", "/dashboard/send-queue"],
+  ["Engagement", "/dashboard/engagement"],
   ["Campaigns", "/dashboard/campaigns"],
   ["Tasks", "/dashboard/tasks"],
   ["Activity", "/dashboard/activity"],
