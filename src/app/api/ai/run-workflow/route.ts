@@ -107,6 +107,31 @@ export async function POST(req: Request) {
       throw new Error(updateError.message)
     }
 
+    await supabaseAdmin.from("ai_outputs").insert({
+      workspace_id: workflow.workspace_id,
+      workflow_run_id: run.id,
+      contact_id: contact?.id || null,
+      company_id: contact?.company_id || null,
+      output_type: workflow.action_type,
+      title: workflow.name,
+      content: typeof output.content === "string" ? output.content : JSON.stringify(output),
+      metadata: output,
+    })
+
+    if (workflow.action_type === "email_draft") {
+      await supabaseAdmin.from("outbound_drafts").insert({
+        workspace_id: workflow.workspace_id,
+        workflow_run_id: run.id,
+        contact_id: contact?.id || null,
+        company_id: contact?.company_id || null,
+        channel: "email",
+        subject: "AI-generated outreach draft",
+        body: typeof output.content === "string" ? output.content : JSON.stringify(output, null, 2),
+        status: "draft",
+        metadata: output,
+      })
+    }
+
     return NextResponse.json({
       success: true,
       run: updatedRun,
