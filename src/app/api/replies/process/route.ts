@@ -9,24 +9,15 @@ const supabaseAdmin = createClient(
 
 export async function POST(req: Request) {
   try {
-    const {
-      workspaceId,
-      queueId,
-      contactId,
-      subject,
-      body,
-    } = await req.json()
+    const { workspaceId, queueId, contactId, subject, body } = await req.json()
 
     if (!workspaceId || !body) {
-      return NextResponse.json(
-        { error: "Missing workspaceId or body" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Missing workspaceId or body" }, { status: 400 })
     }
 
     const intelligence = classifyReply(body)
 
-    const { data: reply, error } = await supabaseAdmin
+    const { data: reply, error: replyError } = await supabaseAdmin
       .from("inbound_replies")
       .insert({
         workspace_id: workspaceId,
@@ -43,52 +34,41 @@ export async function POST(req: Request) {
       .select("*")
       .single()
 
-    if (error) throw new Error(error.message)
+    if (replyError) throw new Error(`Reply insert failed: ${replyError.message}`)
 
-    if (
-      intelligence.classification === "interested" &&
-      contactId
-    ) {
-      await supabaseAdmin.from("tasks").insert({
-        workspace_id: workspaceId,
-        contact_id: contactId,
-        title: "Follow up with interested prospect",
-        status: "open",
-        priority: "high",
-      })
+    let task: { id?: string } | null = null
+
+    if (intelligence.classification === "interested") {
+      const result = await supabaseAdmin
+        .from("tasks")
+        .insert({
+          workspace_id: workspaceId,
+          contact_id: contactId || null,
+          title: "Follow up with interested prospect",
+          description: intelligence.summary,
+          status: "open",
+          priority: "high",
+          source: "reply_intelligence",
+          metadata: {
+            reply_id: reply.id,
+            classification: intelligence.classification,
+            sentiment: intelligence.sentiment,
+            confidence: intelligence.confidence,
+          },
+        })
+        .select("*")
+        .single()
+
+      if (result.error) {
+        throw new Error(`Task creation failed: ${result.error.message}`)
+      }
+
+      task = result.data
 
       await supabaseAdmin
         .from("inbound_replies")
-        .update({
-          created_task: true,
-        })
+        .update({ created_task: true })
         .eq("id", reply.id)
-    }
-
-    if (
-      ["unsubscribe", "not_now"].includes(intelligence.classification) &&
-      contactId
-    ) {
-      await supabaseAdmin
-        .from("outbound_enrollments")
-        .update({
-          status: "paused",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("workspace_id", workspaceId)
-        .eq("contact_id", contactId)
-
-      await supabaseAdmin.from("activity_timeline").insert({
-        workspace_id: workspaceId,
-        contact_id: contactId,
-        activity_type: "sequence_paused",
-        title: "Sequence paused by reply intelligence",
-        description: `Sequence paused because reply was classified as ${intelligence.classification}.`,
-        metadata: {
-          reply_id: reply.id,
-          classification: intelligence.classification,
-        },
-      })
     }
 
     await supabaseAdmin.from("activity_timeline").insert({
@@ -99,24 +79,21 @@ export async function POST(req: Request) {
       description: intelligence.summary,
       metadata: {
         reply_id: reply.id,
+        task_id: task?.id || null,
+        task_created: Boolean(task?.id),
         classification: intelligence.classification,
-        sentiment: intelligence.sentiment,
-        confidence: intelligence.confidence,
       },
     })
 
     return NextResponse.json({
       reply,
       intelligence,
+      taskCreated: Boolean(task?.id),
+      task,
     })
   } catch (error) {
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Reply processing failed",
-      },
+      { error: error instanceof Error ? error.message : "Reply processing failed" },
       { status: 500 }
     )
   }

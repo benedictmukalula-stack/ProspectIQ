@@ -94,6 +94,25 @@ export default function RepliesPage() {
           </button>
         </section>
 
+        {result?.error && (
+          <section className="rounded-xl border p-6">
+            <h2 className="text-lg font-semibold">Reply processing error</h2>
+            <p className="mt-2 text-sm text-red-600">{result.error}</p>
+          </section>
+        )}
+
+        {result?.taskCreated !== undefined && (
+          <section className="rounded-xl border p-6">
+            <h2 className="text-lg font-semibold">Task creation status</h2>
+            <p className="mt-2 text-sm">
+              Task created: {String(result.taskCreated)}
+            </p>
+            {result?.task?.id && (
+              <p className="text-xs text-muted-foreground">Task ID: {result.task.id}</p>
+            )}
+          </section>
+        )}
+
         {result?.intelligence && (
           <section className="rounded-xl border p-6 space-y-4">
             <div>

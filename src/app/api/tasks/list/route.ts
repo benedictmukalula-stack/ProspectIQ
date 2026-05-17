@@ -19,7 +19,6 @@ export async function POST(req: Request) {
       .select("*")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })
-      .limit(50)
 
     if (error) throw new Error(error.message)
 
