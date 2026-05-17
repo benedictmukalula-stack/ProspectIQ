@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { classifyReply } from "@/lib/ai/reply-intelligence"
+import { generateFollowUpDraft } from "@/lib/replies/follow-up"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -37,6 +38,7 @@ export async function POST(req: Request) {
     if (replyError) throw new Error(`Reply insert failed: ${replyError.message}`)
 
     let task: { id?: string } | null = null
+    let followUpDraft: { id?: string } | null = null
 
     if (intelligence.classification === "interested") {
       const result = await supabaseAdmin
@@ -71,6 +73,52 @@ export async function POST(req: Request) {
         .eq("id", reply.id)
     }
 
+    const draft = generateFollowUpDraft({
+      classification: intelligence.classification,
+      body,
+    })
+
+    if (draft) {
+      const { data: createdDraft, error: draftError } = await supabaseAdmin
+        .from("outbound_drafts")
+        .insert({
+          workspace_id: workspaceId,
+          contact_id: contactId || null,
+          queue_id: queueId || null,
+          channel: "email",
+          subject: draft.subject,
+          body: draft.body,
+          status: "draft",
+          metadata: {
+            source: "reply_intelligence",
+            reply_id: reply.id,
+            classification: intelligence.classification,
+            original_reply: body,
+          },
+        })
+        .select("*")
+        .single()
+
+      if (draftError) {
+        throw new Error(`Follow-up draft creation failed: ${draftError.message}`)
+      }
+
+      followUpDraft = createdDraft
+
+      await supabaseAdmin.from("activity_timeline").insert({
+        workspace_id: workspaceId,
+        contact_id: contactId || null,
+        activity_type: "follow_up_draft_created",
+        title: "AI follow-up draft created",
+        description: `ProspectIQ created a follow-up draft for ${intelligence.classification}.`,
+        metadata: {
+          reply_id: reply.id,
+          draft_id: createdDraft.id,
+          classification: intelligence.classification,
+        },
+      })
+    }
+
     await supabaseAdmin.from("activity_timeline").insert({
       workspace_id: workspaceId,
       contact_id: contactId || null,
@@ -90,6 +138,8 @@ export async function POST(req: Request) {
       intelligence,
       taskCreated: Boolean(task?.id),
       task,
+      followUpDraftCreated: Boolean(followUpDraft?.id),
+      followUpDraft,
     })
   } catch (error) {
     return NextResponse.json(
