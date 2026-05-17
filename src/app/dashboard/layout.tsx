@@ -12,6 +12,7 @@ const navigation = [
   ["AI Workflows", "/dashboard/ai-workflows"],
   ["Email Automation", "/dashboard/email-automation"],
   ["Outbound", "/dashboard/outbound"],
+  ["Sequences", "/dashboard/sequences"],
   ["Campaigns", "/dashboard/campaigns"],
   ["Tasks", "/dashboard/tasks"],
   ["Activity", "/dashboard/activity"],
