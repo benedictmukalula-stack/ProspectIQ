@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { sendEmail } from "@/lib/email/provider"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -46,6 +47,12 @@ export async function POST(req: Request) {
         continue
       }
 
+      const delivery = await sendEmail({
+        to: item.crm_contacts.email,
+        subject: item.subject || "ProspectIQ outreach",
+        body: item.body,
+      })
+
       await supabaseAdmin
         .from("outbound_send_queue")
         .update({
@@ -53,23 +60,37 @@ export async function POST(req: Request) {
           sent_at: new Date().toISOString(),
           metadata: {
             ...(item.metadata || {}),
-            simulated_delivery: true,
+            provider: delivery.provider,
+            provider_message_id: delivery.messageId,
+            simulated_delivery: delivery.simulated,
           },
         })
         .eq("id", item.id)
+
+      await supabaseAdmin.from("outbound_events").insert({
+        workspace_id: workspaceId,
+        queue_id: item.id,
+        contact_id: item.contact_id,
+        event_type: "sent",
+        provider: delivery.provider,
+        provider_message_id: delivery.messageId,
+        metadata: delivery,
+      })
 
       sent.push(item.id)
 
       await supabaseAdmin.from("activity_timeline").insert({
         workspace_id: workspaceId,
         contact_id: item.contact_id,
-        activity_type: "email_sent_simulated",
-        title: "Outbound email sent",
-        description: `Simulated email sent to ${item.crm_contacts.email}.`,
+        activity_type: delivery.simulated ? "email_sent_simulated" : "email_sent",
+        title: delivery.simulated ? "Outbound email simulated" : "Outbound email sent",
+        description: `${delivery.simulated ? "Simulated email" : "Email"} sent to ${item.crm_contacts.email}.`,
         metadata: {
           queue_id: item.id,
           subject: item.subject,
-          simulated: true,
+          provider: delivery.provider,
+          provider_message_id: delivery.messageId,
+          simulated: delivery.simulated,
         },
       })
 
