@@ -3,6 +3,39 @@ type AIMessage = {
   content: string
 }
 
+function createMockSalesOutput(prompt: string) {
+  if (prompt.includes("email_draft")) {
+    return `Subject: Improving prospecting and sales workflow visibility
+
+Hi there,
+
+I noticed your team may be handling prospect research, enrichment, outreach, and CRM follow-up across multiple tools.
+
+ProspectIQ helps sales teams centralize lead intelligence, automate research workflows, score prospects, and prepare personalized outbound campaigns from one dashboard.
+
+Would it make sense to schedule a short introduction to see whether this could improve your current sales process?
+
+Best regards,
+ProspectIQ Team`
+  }
+
+  if (prompt.includes("lead_score")) {
+    return `Lead Score: 87/100
+
+Reasoning:
+This prospect appears to be a strong fit based on operational responsibility, likely buying influence, and relevance to sales intelligence automation.
+
+Recommended next action:
+Prioritize for a personalized discovery email and follow-up task.`
+  }
+
+  return `ProspectIQ AI Output
+
+This workflow completed successfully in mock mode.
+
+Add OPENAI_API_KEY and set DISABLE_REAL_AI=false to enable live AI execution.`
+}
+
 export async function runAI({
   system,
   prompt,
@@ -10,12 +43,11 @@ export async function runAI({
   system?: string
   prompt: string
 }) {
-  if (!process.env.OPENAI_API_KEY) {
+  if (process.env.DISABLE_REAL_AI === "true" || !process.env.OPENAI_API_KEY) {
     return {
       provider: "mock",
       model: "mock-sales-intelligence",
-      content:
-        "Mock AI output: Add OPENAI_API_KEY to enable real AI workflow execution.",
+      content: createMockSalesOutput(prompt),
       usage: {
         input_tokens: 0,
         output_tokens: 0,

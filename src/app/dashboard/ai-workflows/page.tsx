@@ -165,6 +165,12 @@ export default function AIWorkflowsPage() {
                   </span>
                 </div>
 
+                {run.error && (
+                  <div className="rounded bg-red-50 p-3 text-xs text-red-700">
+                    {run.error}
+                  </div>
+                )}
+
                 {run.output && (
                   <pre className="overflow-auto rounded bg-muted p-3 text-xs">
                     {JSON.stringify(run.output, null, 2)}

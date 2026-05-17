@@ -6,6 +6,25 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const DEFAULT_WORKFLOWS = [
+  {
+    name: "Lead Qualification Assistant",
+    description: "Scores contacts based on title, company, source, and intent signals.",
+    action_type: "lead_score",
+    prompt_template:
+      "Analyze this lead and return a score from 0-100 with recommended next action.",
+    status: "active",
+  },
+  {
+    name: "Outbound Email Drafting",
+    description: "Generates personalized outreach emails for qualified contacts.",
+    action_type: "email_draft",
+    prompt_template:
+      "Write a concise B2B outreach email using the contact and company context.",
+    status: "draft",
+  },
+]
+
 export async function POST(req: Request) {
   try {
     const { workspaceId } = await req.json()
@@ -14,41 +33,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing workspaceId" }, { status: 400 })
     }
 
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("ai_workflows")
-      .select("*")
-      .eq("workspace_id", workspaceId)
-      .order("created_at", { ascending: false })
+    for (const workflow of DEFAULT_WORKFLOWS) {
+      const { data: existing } = await supabaseAdmin
+        .from("ai_workflows")
+        .select("id")
+        .eq("workspace_id", workspaceId)
+        .eq("action_type", workflow.action_type)
+        .eq("name", workflow.name)
+        .maybeSingle()
 
-    if (existingError) throw new Error(existingError.message)
-
-    if (existing && existing.length > 0) {
-      return NextResponse.json({ workflows: existing })
+      if (!existing) {
+        await supabaseAdmin.from("ai_workflows").insert({
+          workspace_id: workspaceId,
+          ...workflow,
+        })
+      }
     }
 
     const { data, error } = await supabaseAdmin
       .from("ai_workflows")
-      .insert([
-        {
-          workspace_id: workspaceId,
-          name: "Lead Qualification Assistant",
-          description: "Scores contacts based on title, company, source, and intent signals.",
-          action_type: "lead_score",
-          prompt_template:
-            "Analyze this lead and return a score from 0-100 with recommended next action.",
-          status: "active",
-        },
-        {
-          workspace_id: workspaceId,
-          name: "Outbound Email Drafting",
-          description: "Generates personalized outreach emails for qualified contacts.",
-          action_type: "email_draft",
-          prompt_template:
-            "Write a concise B2B outreach email using the contact and company context.",
-          status: "draft",
-        },
-      ])
       .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: true })
 
     if (error) throw new Error(error.message)
 

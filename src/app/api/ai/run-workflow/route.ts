@@ -29,14 +29,13 @@ Return a concise, structured sales intelligence output.
 }
 
 export async function POST(req: Request) {
+  let runId: string | null = null
+
   try {
     const { workflowId, contactId } = await req.json()
 
     if (!workflowId) {
-      return NextResponse.json(
-        { error: "Missing workflowId" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Missing workflowId" }, { status: 400 })
     }
 
     const { data: workflow, error: workflowError } = await supabaseAdmin
@@ -81,6 +80,8 @@ export async function POST(req: Request) {
       throw new Error(runError?.message || "Failed to create workflow run")
     }
 
+    runId = run.id
+
     const aiResult = await runAI({
       prompt: buildWorkflowPrompt(workflow, contact),
     })
@@ -107,29 +108,37 @@ export async function POST(req: Request) {
       throw new Error(updateError.message)
     }
 
-    await supabaseAdmin.from("ai_outputs").insert({
+    const { error: outputInsertError } = await supabaseAdmin.from("ai_outputs").insert({
       workspace_id: workflow.workspace_id,
       workflow_run_id: run.id,
       contact_id: contact?.id || null,
       company_id: contact?.company_id || null,
       output_type: workflow.action_type,
       title: workflow.name,
-      content: typeof output.content === "string" ? output.content : JSON.stringify(output),
+      content: output.content,
       metadata: output,
     })
 
+    if (outputInsertError) {
+      throw new Error(`AI output insert failed: ${outputInsertError.message}`)
+    }
+
     if (workflow.action_type === "email_draft") {
-      await supabaseAdmin.from("outbound_drafts").insert({
+      const { error: draftInsertError } = await supabaseAdmin.from("outbound_drafts").insert({
         workspace_id: workflow.workspace_id,
         workflow_run_id: run.id,
         contact_id: contact?.id || null,
         company_id: contact?.company_id || null,
         channel: "email",
         subject: "AI-generated outreach draft",
-        body: typeof output.content === "string" ? output.content : JSON.stringify(output, null, 2),
+        body: output.content,
         status: "draft",
         metadata: output,
       })
+
+      if (draftInsertError) {
+        throw new Error(`Outbound draft insert failed: ${draftInsertError.message}`)
+      }
     }
 
     return NextResponse.json({
@@ -138,14 +147,22 @@ export async function POST(req: Request) {
       output,
     })
   } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Workflow execution failed",
-      },
-      { status: 500 }
-    )
+    const message =
+      error instanceof Error ? error.message : "Workflow execution failed"
+
+    console.error("Workflow execution error:", message)
+
+    if (runId) {
+      await supabaseAdmin
+        .from("ai_workflow_runs")
+        .update({
+          status: "failed",
+          error: message,
+          completed_at: new Date().toISOString(),
+        })
+        .eq("id", runId)
+    }
+
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
