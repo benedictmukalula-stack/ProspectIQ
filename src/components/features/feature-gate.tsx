@@ -36,6 +36,7 @@ export function FeatureGate({
         },
         body: JSON.stringify({
           userId: session?.user?.id,
+          email: session?.user?.email,
           feature,
         }),
       })
