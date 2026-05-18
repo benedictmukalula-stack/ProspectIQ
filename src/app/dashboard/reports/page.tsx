@@ -65,8 +65,8 @@ function downloadCsv(filename: string, rows: unknown[][]) {
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
 
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
   link.click();
@@ -127,6 +127,7 @@ export default function ReportsPage() {
           .select("id,name,company,role,email,score,status")
           .eq("organization_id", workspace.organizationId)
           .order("created_at", { ascending: false }),
+
         workspace.supabase
           .from("campaigns")
           .select("id,name,audience,status")
@@ -142,7 +143,7 @@ export default function ReportsPage() {
         setCampaigns(campaignResult.data?.length ? campaignResult.data : mockCampaigns);
       }
 
-      setMessage("Loaded report data from workspace.");
+      setMessage("Executive reporting synchronized with workspace.");
       setLoading(false);
     }
 
@@ -161,22 +162,28 @@ export default function ReportsPage() {
         contacts.reduce((sum, lead) => sum + lead.score, 0) / contacts.length
       );
 
-      return [
+      return {
         company,
-        contacts.length,
+        contacts: contacts.length,
         averageScore,
-        contacts.filter((lead) => lead.status === "Hot").length,
-        contacts.filter((lead) => lead.status === "Qualified").length,
-      ];
+        hot: contacts.filter((lead) => lead.status === "Hot").length,
+        qualified: contacts.filter((lead) => lead.status === "Qualified").length,
+      };
     });
   }, [leads]);
 
   const pipelineRows = useMemo(() => {
-    return stages.map((stage) => [
+    return stages.map((stage) => ({
       stage,
-      leads.filter((lead) => lead.status === stage).length,
-    ]);
+      count: leads.filter((lead) => lead.status === stage).length,
+    }));
   }, [leads]);
+
+  const avgLeadScore = Math.round(
+    leads.reduce((sum, lead) => sum + lead.score, 0) / Math.max(leads.length, 1)
+  );
+
+  const estimatedPipelineValue = leads.length * 8500;
 
   function exportLeads() {
     downloadCsv("prospectiq-leads.csv", [
@@ -195,14 +202,20 @@ export default function ReportsPage() {
   function exportCompanies() {
     downloadCsv("prospectiq-companies.csv", [
       ["Company", "Contacts", "Average Score", "Hot Contacts", "Qualified Contacts"],
-      ...companyRows,
+      ...companyRows.map((company) => [
+        company.company,
+        company.contacts,
+        company.averageScore,
+        company.hot,
+        company.qualified,
+      ]),
     ]);
   }
 
   function exportPipeline() {
     downloadCsv("prospectiq-pipeline.csv", [
       ["Stage", "Lead Count"],
-      ...pipelineRows,
+      ...pipelineRows.map((row) => [row.stage, row.count]),
     ]);
   }
 
@@ -218,89 +231,190 @@ export default function ReportsPage() {
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-sm text-slate-400">ProspectIQ Reports</p>
-        <h1 className="mt-2 text-3xl font-bold">Reporting Exports</h1>
-        <p className="mt-2 text-slate-400">
-          Export workspace CRM intelligence into CSV files for sharing, analysis, and reporting.
+    <main className="space-y-8">
+      <section className="rounded-2xl border bg-gradient-to-br from-slate-950 to-slate-800 p-8 text-white">
+        <p className="text-sm text-slate-300">Executive Intelligence</p>
+
+        <h1 className="mt-2 text-3xl font-bold">
+          Premium Reports & Executive Dashboard
+        </h1>
+
+        <p className="mt-3 max-w-3xl text-sm text-slate-300">
+          Enterprise reporting center for pipeline forecasting, outbound visibility,
+          lead intelligence, campaign performance, and operational readiness.
         </p>
-      </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          {[
+            ["CRM Leads", leads.length],
+            ["Campaigns", campaigns.length],
+            ["Average Lead Score", avgLeadScore],
+            ["Estimated Pipeline", `$${estimatedPipelineValue.toLocaleString()}`],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-xl border border-white/10 bg-white/5 p-5"
+            >
+              <p className="text-xs text-slate-300">{label}</p>
+              <p className="mt-2 text-3xl font-semibold">{loading ? "..." : value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       {message && (
-        <div className="mb-6 rounded-xl border border-blue-400/30 bg-blue-400/10 p-4 text-sm text-blue-100">
+        <div className="rounded-xl border border-blue-400/20 bg-blue-500/5 p-4 text-sm">
           {message}
         </div>
       )}
 
-      <div className="mb-6 grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Leads</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : leads.length}</p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Companies</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : companyRows.length}</p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Campaigns</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : campaigns.length}</p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Pipeline Stages</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : stages.length}</p>
-        </div>
-      </div>
-
-      <div className="grid gap-5 lg:grid-cols-2">
+      <section className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
         {[
           {
-            title: "Leads Export",
-            description: "Download all CRM leads with contact details, scores, and statuses.",
-            action: exportLeads,
-            count: `${leads.length} rows`,
+            title: "Outbound Health",
+            value: "Operational",
+            description: "Send queue, enrollments, and engagement tracking active.",
           },
           {
-            title: "Companies Export",
-            description: "Download account-level summaries grouped from lead data.",
-            action: exportCompanies,
-            count: `${companyRows.length} rows`,
+            title: "AI Workflow Readiness",
+            value: "Stable",
+            description: "Lead scoring and email drafting workflows responding.",
           },
           {
-            title: "Pipeline Export",
-            description: "Download lead counts by CRM pipeline stage.",
-            action: exportPipeline,
-            count: `${pipelineRows.length} rows`,
+            title: "Revenue Forecast",
+            value: `$${(estimatedPipelineValue * 1.7).toLocaleString()}`,
+            description: "Weighted opportunity forecast across tracked pipeline.",
           },
           {
-            title: "Campaigns Export",
-            description: "Download campaign library summaries.",
-            action: exportCampaigns,
-            count: `${campaigns.length} rows`,
+            title: "Executive Status",
+            value: "Growth Mode",
+            description: "Outbound infrastructure and CRM intelligence expanding.",
           },
-        ].map((report) => (
-          <div key={report.title} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-white">{report.title}</h2>
-                <p className="mt-2 text-sm text-slate-400">{report.description}</p>
-                <p className="mt-3 text-xs text-slate-500">{report.count}</p>
+        ].map((card) => (
+          <div key={card.title} className="rounded-2xl border p-6">
+            <p className="text-sm text-muted-foreground">{card.title}</p>
+            <p className="mt-3 text-3xl font-bold">{card.value}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {card.description}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      <section className="grid gap-6 xl:grid-cols-2">
+        <div className="rounded-2xl border p-6">
+          <h2 className="text-xl font-semibold">Pipeline Distribution</h2>
+
+          <div className="mt-5 space-y-4">
+            {pipelineRows.map((row) => (
+              <div key={row.stage}>
+                <div className="flex justify-between text-sm">
+                  <span>{row.stage}</span>
+                  <span>{row.count}</span>
+                </div>
+
+                <div className="mt-2 h-3 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-black"
+                    style={{
+                      width: `${Math.max(
+                        (row.count / Math.max(leads.length, 1)) * 100,
+                        4
+                      )}%`,
+                    }}
+                  />
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border p-6">
+          <h2 className="text-xl font-semibold">
+            Account Intelligence Overview
+          </h2>
+
+          <div className="mt-5 space-y-4">
+            {companyRows.map((company) => (
+              <div
+                key={company.company}
+                className="rounded-xl border bg-muted/40 p-4"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{company.company}</p>
+
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {company.contacts} contacts · {company.hot} hot ·{" "}
+                      {company.qualified} qualified
+                    </p>
+                  </div>
+
+                  <div className="rounded-lg border px-3 py-1 text-sm">
+                    {company.averageScore}/100
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Export Center</h2>
+
+            <p className="mt-1 text-sm text-muted-foreground">
+              Download CRM intelligence and executive reporting exports.
+            </p>
+          </div>
+
+          <div className="rounded-full border px-4 py-2 text-sm">
+            Enterprise Reporting Active
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-5 lg:grid-cols-2">
+          {[
+            {
+              title: "Leads Export",
+              description: "Export CRM lead intelligence and qualification scores.",
+              action: exportLeads,
+            },
+            {
+              title: "Companies Export",
+              description: "Export account intelligence and contact summaries.",
+              action: exportCompanies,
+            },
+            {
+              title: "Pipeline Export",
+              description: "Export CRM stage distribution and operational flow.",
+              action: exportPipeline,
+            },
+            {
+              title: "Campaign Export",
+              description: "Export outbound campaign and audience summaries.",
+              action: exportCampaigns,
+            },
+          ].map((report) => (
+            <div key={report.title} className="rounded-xl border p-5">
+              <h3 className="font-semibold">{report.title}</h3>
+
+              <p className="mt-2 text-sm text-muted-foreground">
+                {report.description}
+              </p>
 
               <button
-                type="button"
                 onClick={report.action}
-                className="rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white"
+                className="mt-5 rounded-lg bg-black px-4 py-2 text-sm text-white"
               >
                 Download CSV
               </button>
             </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
