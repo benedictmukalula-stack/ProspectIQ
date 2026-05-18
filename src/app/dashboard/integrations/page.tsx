@@ -154,27 +154,27 @@ export default function IntegrationsPage() {
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {[
-            ["Connect production email provider", false],
-            ["Configure Stripe live billing", false],
-            ["Enable Supabase RLS policies", false],
-            ["Connect AI provider keys", false],
-            ["Configure webhook endpoints", false],
-            ["Deploy Vercel production environment", true],
-          ].map(([label, complete]) => (
+            { label: "Connect production email provider", complete: false },
+            { label: "Configure Stripe live billing", complete: false },
+            { label: "Enable Supabase RLS policies", complete: false },
+            { label: "Connect AI provider keys", complete: false },
+            { label: "Configure webhook endpoints", complete: false },
+            { label: "Deploy Vercel production environment", complete: true },
+          ].map((item) => (
             <div
-              key={label}
+              key={item.label}
               className="flex items-center justify-between rounded-xl border p-4"
             >
-              <span className="text-sm">{label}</span>
+              <span className="text-sm">{item.label}</span>
 
               <span
                 className={`rounded-full px-3 py-1 text-xs ${
-                  complete
+                  item.complete
                     ? "bg-green-500/10 text-green-600"
                     : "bg-yellow-500/10 text-yellow-700"
                 }`}
               >
-                {complete ? "Complete" : "Pending"}
+                {item.complete ? "Complete" : "Pending"}
               </span>
             </div>
           ))}
