@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
+import { useWorkspaceEventsRealtime } from "@/lib/realtime/use-workspace-events"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -55,6 +56,30 @@ export default function ActivityPage() {
   useEffect(() => {
     loadEvents()
   }, [])
+
+  useWorkspaceEventsRealtime({
+    supabase,
+    workspaceId: workspace?.id,
+    onEvent: (payload) => {
+      if (payload.eventType === "INSERT" && payload.new) {
+        setEvents((current) => [payload.new, ...current])
+      }
+
+      if (payload.eventType === "UPDATE" && payload.new) {
+        setEvents((current) =>
+          current.map((event) =>
+            event.id === payload.new.id ? payload.new : event
+          )
+        )
+      }
+
+      if (payload.eventType === "DELETE" && payload.old) {
+        setEvents((current) =>
+          current.filter((event) => event.id !== payload.old.id)
+        )
+      }
+    },
+  })
 
   const filteredEvents = useMemo(() => {
     if (filter === "all") return events

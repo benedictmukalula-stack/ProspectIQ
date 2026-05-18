@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
+import { useWorkspaceNotificationsRealtime } from "@/lib/realtime/use-workspace-notifications"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -79,6 +80,30 @@ export default function NotificationsPage() {
   useEffect(() => {
     loadNotifications()
   }, [])
+
+  useWorkspaceNotificationsRealtime({
+    supabase,
+    workspaceId: workspace?.id,
+    onNotification: (payload) => {
+      if (payload.eventType === "INSERT" && payload.new) {
+        setNotifications((current) => [payload.new, ...current])
+      }
+
+      if (payload.eventType === "UPDATE" && payload.new) {
+        setNotifications((current) =>
+          current.map((notification) =>
+            notification.id === payload.new.id ? payload.new : notification
+          )
+        )
+      }
+
+      if (payload.eventType === "DELETE" && payload.old) {
+        setNotifications((current) =>
+          current.filter((notification) => notification.id !== payload.old.id)
+        )
+      }
+    },
+  })
 
   const visibleNotifications = useMemo(() => {
     if (filter === "all") return notifications
