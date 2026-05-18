@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { normalizeEngagementMetrics } from "@/lib/telemetry/engagement-math"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,15 +41,10 @@ export async function POST(req: NextRequest) {
     const runs = runsResult.data || []
     const team = teamResult.data || []
 
-    const sent = queue.filter((item) => item.status === "sent").length
-    const queued = queue.filter((item) => item.status === "queued").length
-    const opened = engagement.filter((event) => event.event_type === "opened").length
-    const clicked = engagement.filter((event) => event.event_type === "clicked").length
-    const replied = engagement.filter((event) => event.event_type === "replied").length
-
-    const openRate = sent ? Math.round((opened / sent) * 100) : 0
-    const clickRate = sent ? Math.round((clicked / sent) * 100) : 0
-    const replyRate = sent ? Math.round((replied / sent) * 100) : 0
+    const engagementMetrics = normalizeEngagementMetrics({
+      queue,
+      engagement,
+    })
 
     return NextResponse.json({
       intelligence: {
@@ -57,8 +53,8 @@ export async function POST(req: NextRequest) {
           contacts: contacts.length,
           sequences: sequences.length,
           activeSequences: sequences.filter((s) => s.status === "active").length,
-          queuedEmails: queued,
-          sentEmails: sent,
+          queuedEmails: engagementMetrics.queued,
+          sentEmails: engagementMetrics.sent,
           engagementEvents: engagement.length,
           aiWorkflows: workflows.length,
           activeAiWorkflows: workflows.filter((w) => w.status === "active").length,
@@ -66,12 +62,15 @@ export async function POST(req: NextRequest) {
           teamMembers: team.length,
         },
         performance: {
-          opened,
-          clicked,
-          replied,
-          openRate,
-          clickRate,
-          replyRate,
+          opened: engagementMetrics.opened,
+          clicked: engagementMetrics.clicked,
+          replied: engagementMetrics.replied,
+          uniqueOpened: engagementMetrics.uniqueOpened,
+          uniqueClicked: engagementMetrics.uniqueClicked,
+          uniqueReplied: engagementMetrics.uniqueReplied,
+          openRate: engagementMetrics.openRate,
+          clickRate: engagementMetrics.clickRate,
+          replyRate: engagementMetrics.replyRate,
         },
         health: {
           workspace: "active",
