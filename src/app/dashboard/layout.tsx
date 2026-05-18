@@ -7,7 +7,7 @@ const navigation = [
   ["LinkedIn Research", "/dashboard/linkedin"],
   ["Companies", "/dashboard/companies"],
   ["CRM", "/dashboard/crm"],
-  ["Pipeline", "/dashboard/pipeline"],
+  ["Pipeline", "/dashboard/crm/pipeline"],
   ["Workflows", "/dashboard/workflows"],
   ["AI Workflows", "/dashboard/ai-workflows"],
   ["Email Automation", "/dashboard/email-automation"],
