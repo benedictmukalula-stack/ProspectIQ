@@ -83,7 +83,7 @@ export async function runAgentRuntimeCycle({
     }
   }
 
-  return {
+  const runtimeResult = {
     workspaceId,
     createEvents,
     executedAt: new Date().toISOString(),
@@ -91,4 +91,40 @@ export async function runAgentRuntimeCycle({
     totalSignals: results.reduce((sum, item) => sum + item.count, 0),
     failedAgents: results.filter((item) => item.status === "failed").length,
   }
+
+  try {
+    const intelligenceResponse = await fetch(`${baseUrl}/api/dashboard/intelligence`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ workspaceId }),
+      cache: "no-store",
+    })
+
+    const intelligenceData = await intelligenceResponse.json()
+
+    const executiveResult = results.find((item) => item.agent === "executive")
+    const readinessScore = executiveResult?.data?.readinessScore || 0
+
+    if (intelligenceResponse.ok) {
+      await fetch(`${baseUrl}/api/memory/runtime-snapshot`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          workspaceId,
+          runtimeResult,
+          intelligence: intelligenceData.intelligence,
+          readinessScore,
+        }),
+        cache: "no-store",
+      })
+    }
+  } catch {
+    // Memory capture must never block agent runtime execution.
+  }
+
+  return runtimeResult
 }
