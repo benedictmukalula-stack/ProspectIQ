@@ -1,400 +1,246 @@
-"use client";
+"use client"
 
-import { useEffect, useMemo, useState } from "react";
-import {
-  createBrowserSupabaseClient,
-  isDemoMode,
-  supabaseAuth,
-} from "@/lib/supabase/client";
+import { useMemo, useState } from "react"
 
-type Lead = {
-  id: string;
-  name: string;
-  company: string;
-  role: string | null;
-  email: string | null;
-  score: number;
-  status: string;
-};
-
-type CompanyProfile = {
-  company: string;
-  leadCount: number;
-  averageScore: number;
-  hotCount: number;
-  qualifiedCount: number;
-  contacts: Lead[];
-};
-
-type ExternalEnrichment = {
-  provider: string;
-  company: string;
-  website?: string | null;
-  industry?: string;
-  size_estimate?: string;
-  region?: string;
-  confidence?: number;
-  signals?: string[];
-  provider_error?: string;
-  raw?: unknown;
-};
-
-const mockLeads: Lead[] = [
+const companies = [
   {
-    id: "1",
-    name: "Sarah M.",
-    company: "Atlas Freight",
-    role: "Operations Director",
-    email: "sarah@atlasfreight.example",
-    score: 92,
-    status: "Warm",
+    name: "AfriBridge Logistics",
+    industry: "Logistics & Trade",
+    employees: "50-200",
+    revenue: "$4.2M",
+    fit: 92,
+    relationship: "Active Opportunity",
+    tech: ["HubSpot", "Slack", "Microsoft 365"],
+    intent: "High",
+    contacts: 4,
+    nextAction: "Prepare enterprise logistics automation proposal",
   },
   {
-    id: "2",
-    name: "James K.",
-    company: "TradeLink Africa",
-    role: "Procurement Lead",
-    email: "james@tradelink.example",
-    score: 88,
-    status: "Hot",
+    name: "Knowledge Camp Global",
+    industry: "Corporate Training",
+    employees: "10-50",
+    revenue: "$1.1M",
+    fit: 88,
+    relationship: "Proposal Stage",
+    tech: ["Google Workspace", "Zoom"],
+    intent: "High",
+    contacts: 3,
+    nextAction: "Finalize enterprise LMS workflow scope",
   },
-];
-
-function enrichCompany(company: CompanyProfile) {
-  const name = company.company.toLowerCase();
-  const signals: string[] = [];
-
-  if (
-    name.includes("freight") ||
-    name.includes("cargo") ||
-    name.includes("logistics") ||
-    name.includes("trade") ||
-    name.includes("export")
-  ) {
-    signals.push("Strong logistics or trade relevance detected.");
-  }
-
-  if (company.averageScore >= 85) {
-    signals.push("High average buying-fit score.");
-  } else if (company.averageScore >= 70) {
-    signals.push("Good commercial fit with room for qualification.");
-  } else {
-    signals.push("Needs additional qualification before priority outreach.");
-  }
-
-  if (company.leadCount > 1) {
-    signals.push("Multiple contacts available inside this account.");
-  } else {
-    signals.push("Single-contact account; identify more decision makers.");
-  }
-
-  if (company.hotCount > 0 || company.qualifiedCount > 0) {
-    signals.push("Prioritize account-based follow-up.");
-  }
-
-  return signals;
-}
+  {
+    name: "Reliable Mobility Solutions",
+    industry: "Automotive",
+    employees: "1-10",
+    revenue: "$600K",
+    fit: 76,
+    relationship: "Early Engagement",
+    tech: ["WhatsApp Business"],
+    intent: "Medium",
+    contacts: 2,
+    nextAction: "Expand sourcing and export operations discussion",
+  },
+]
 
 export default function CompaniesPage() {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [loading, setLoading] = useState(!isDemoMode);
-  const [message, setMessage] = useState("");
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
-  const [insights, setInsights] = useState<string[]>([]);
-  const [externalEnrichment, setExternalEnrichment] = useState<ExternalEnrichment | null>(null);
-  const [enrichingCompany, setEnrichingCompany] = useState<string | null>(null);
+  const [query, setQuery] = useState("")
+  const [intentFilter, setIntentFilter] = useState("all")
 
-  async function getWorkspace() {
-    const supabase = createBrowserSupabaseClient();
+  const filteredCompanies = useMemo(() => {
+    return companies.filter((company) => {
+      const matchesQuery = [company.name, company.industry]
+        .join(" ")
+        .toLowerCase()
+        .includes(query.toLowerCase())
 
-    if (!supabase) {
-      return {
-        supabase: null,
-        organizationId: null,
-        error: "Supabase client unavailable.",
-      };
-    }
+      const matchesIntent =
+        intentFilter === "all" || company.intent === intentFilter
 
-    const userResult = await supabaseAuth.getUser();
+      return matchesQuery && matchesIntent
+    })
+  }, [query, intentFilter])
 
-    if (userResult.error || !userResult.data.user) {
-      return {
-        supabase,
-        organizationId: null,
-        error: "No active session.",
-      };
-    }
-
-    const workspaceResult = await supabase.rpc("ensure_user_workspace");
-
-    if (workspaceResult.error || !workspaceResult.data?.[0]) {
-      return {
-        supabase,
-        organizationId: null,
-        error: "Workspace not ready.",
-      };
-    }
-
-    return {
-      supabase,
-      organizationId: workspaceResult.data[0].organization_id,
-      error: null,
-    };
-  }
-
-  useEffect(() => {
-    async function loadCompanies() {
-      if (isDemoMode) {
-        setLeads(mockLeads);
-        setLoading(false);
-        return;
-      }
-
-      const workspace = await getWorkspace();
-
-      if (workspace.error || !workspace.supabase || !workspace.organizationId) {
-        setMessage(`${workspace.error} Showing demo company data.`);
-        setLeads(mockLeads);
-        setLoading(false);
-        return;
-      }
-
-      const result = await workspace.supabase
-        .from("leads")
-        .select("id,name,company,role,email,score,status")
-        .eq("organization_id", workspace.organizationId)
-        .order("created_at", { ascending: false });
-
-      if (result.error) {
-        setMessage(`${result.error.message}. Showing demo company data.`);
-        setLeads(mockLeads);
-        setLoading(false);
-        return;
-      }
-
-      setLeads(result.data?.length ? result.data : mockLeads);
-      setMessage(
-        result.data?.length
-          ? "Loaded live company intelligence from Supabase leads."
-          : "No live leads yet. Showing demo company data."
-      );
-      setLoading(false);
-    }
-
-    loadCompanies();
-  }, []);
-
-  const companies = useMemo<CompanyProfile[]>(() => {
-    const grouped = leads.reduce<Record<string, Lead[]>>((groups, lead) => {
-      const companyName = lead.company || "Unknown Company";
-      groups[companyName] = groups[companyName] || [];
-      groups[companyName].push(lead);
-      return groups;
-    }, {});
-
-    return Object.entries(grouped)
-      .map(([company, contacts]) => {
-        const totalScore = contacts.reduce((sum, lead) => sum + lead.score, 0);
-
-        return {
-          company,
-          contacts,
-          leadCount: contacts.length,
-          averageScore: Math.round(totalScore / contacts.length),
-          hotCount: contacts.filter((lead) => lead.status === "Hot").length,
-          qualifiedCount: contacts.filter((lead) => lead.status === "Qualified").length,
-        };
-      })
-      .sort((a, b) => b.averageScore - a.averageScore);
-  }, [leads]);
-
-  async function handleEnrich(company: CompanyProfile) {
-    setSelectedCompany(company.company);
-    setInsights(enrichCompany(company));
-    setExternalEnrichment(null);
-    setEnrichingCompany(company.company);
-    setMessage("");
-
-    const response = await fetch("/api/enrichment/company", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        company: company.company,
-        email: company.contacts[0]?.email || undefined,
-      }),
-    });
-
-    const data = (await response.json()) as ExternalEnrichment | { error: string };
-
-    if (!response.ok || "error" in data) {
-      setMessage("External enrichment failed.");
-      setEnrichingCompany(null);
-      return;
-    }
-
-    setExternalEnrichment(data);
-    setMessage(`Generated enrichment insights for ${company.company}.`);
-    setEnrichingCompany(null);
-  }
+  const totalPipeline = filteredCompanies.reduce((sum, company) => {
+    return sum + Number(company.revenue.replace(/[$M,K]/g, ""))
+  }, 0)
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-sm text-slate-400">ProspectIQ Accounts</p>
-        <h1 className="mt-2 text-3xl font-bold">Company Enrichment</h1>
-        <p className="mt-2 text-slate-400">
-          Turn CRM leads into account-level intelligence and prioritization signals.
+    <main className="space-y-8">
+      <section className="rounded-2xl border bg-gradient-to-br from-slate-950 to-slate-800 p-8 text-white">
+        <p className="text-sm text-slate-300">Account Intelligence</p>
+
+        <h1 className="mt-2 text-3xl font-bold">
+          Companies Intelligence Workspace
+        </h1>
+
+        <p className="mt-3 max-w-3xl text-sm text-slate-300">
+          Monitor account fit, buyer intent, technology stack, opportunity
+          maturity, and expansion potential across your target organizations.
         </p>
-      </div>
 
-      {message && (
-        <div className="mb-6 rounded-xl border border-blue-400/30 bg-blue-400/10 p-4 text-sm text-blue-100">
-          {message}
-        </div>
-      )}
-
-      {insights.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-5 text-sm text-emerald-100">
-          <p className="mb-2 font-semibold">Enrichment insights: {selectedCompany}</p>
-          <ul className="list-disc space-y-1 pl-5">
-            {insights.map((insight) => (
-              <li key={insight}>{insight}</li>
-            ))}
-          </ul>
-
-          {externalEnrichment && (
-            <div className="mt-5 rounded-xl border border-white/10 bg-slate-950/60 p-4">
-              <p className="font-semibold text-white">External enrichment</p>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <p>Provider: {externalEnrichment.provider}</p>
-                <p>Confidence: {externalEnrichment.confidence || "Unknown"}</p>
-                <p>Industry: {externalEnrichment.industry || "Unknown"}</p>
-                <p>Size: {externalEnrichment.size_estimate || "Unknown"}</p>
-                <p>Region: {externalEnrichment.region || "Unknown"}</p>
-                <p>Website: {externalEnrichment.website || "Unknown"}</p>
-              </div>
-
-              {externalEnrichment.provider_error && (
-                <p className="mt-3 text-amber-200">
-                  Provider note: {externalEnrichment.provider_error}
-                </p>
-              )}
-
-              {externalEnrichment.signals && (
-                <ul className="mt-3 list-disc space-y-1 pl-5">
-                  {externalEnrichment.signals.map((signal) => (
-                    <li key={signal}>{signal}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="mb-6 grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Companies</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : companies.length}</p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Total Contacts</p>
-          <p className="mt-3 text-3xl font-bold">{loading ? "..." : leads.length}</p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Hot Accounts</p>
-          <p className="mt-3 text-3xl font-bold">
-            {loading ? "..." : companies.filter((company) => company.hotCount > 0).length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <p className="text-sm text-slate-400">Avg Account Score</p>
-          <p className="mt-3 text-3xl font-bold">
-            {loading
-              ? "..."
-              : companies.length
-                ? Math.round(
-                    companies.reduce((sum, company) => sum + company.averageScore, 0) /
-                      companies.length
-                  )
-                : 0}
-          </p>
-        </div>
-      </div>
-
-      <div className="grid gap-5">
-        {companies.map((company) => (
-          <div key={company.company} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <h2 className="text-xl font-semibold text-white">{company.company}</h2>
-                <p className="mt-1 text-sm text-slate-400">
-                  {company.leadCount} contact{company.leadCount === 1 ? "" : "s"} · Avg score{" "}
-                  {company.averageScore}
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300">
-                  Score {company.averageScore}
-                </span>
-                <span className="rounded-full bg-blue-400/10 px-3 py-1 text-xs text-blue-300">
-                  Hot {company.hotCount}
-                </span>
-                <span className="rounded-full bg-purple-400/10 px-3 py-1 text-xs text-purple-300">
-                  Qualified {company.qualifiedCount}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-5 overflow-x-auto">
-              <table className="w-full min-w-[760px] text-left text-sm">
-                <thead className="text-slate-400">
-                  <tr>
-                    <th className="py-3">Contact</th>
-                    <th className="py-3">Role</th>
-                    <th className="py-3">Email</th>
-                    <th className="py-3">Status</th>
-                    <th className="py-3">Score</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {company.contacts.map((lead) => (
-                    <tr key={lead.id} className="border-t border-white/10 text-slate-300">
-                      <td className="py-4 font-medium text-white">{lead.name}</td>
-                      <td className="py-4">{lead.role || "—"}</td>
-                      <td className="py-4">{lead.email || "—"}</td>
-                      <td className="py-4">{lead.status}</td>
-                      <td className="py-4">{lead.score}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <button
-              type="button"
-              disabled={enrichingCompany === company.company}
-              onClick={() => handleEnrich(company)}
-              className="mt-5 rounded-xl bg-blue-500 px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          {[
+            ["Tracked Accounts", filteredCompanies.length],
+            [
+              "High Intent Accounts",
+              filteredCompanies.filter((c) => c.intent === "High").length,
+            ],
+            [
+              "Avg Account Fit",
+              Math.round(
+                filteredCompanies.reduce((sum, c) => sum + c.fit, 0) /
+                  Math.max(filteredCompanies.length, 1)
+              ),
+            ],
+            ["Pipeline Potential", `$${totalPipeline.toFixed(1)}M`],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              className="rounded-xl border border-white/10 bg-white/5 p-4"
             >
-              {enrichingCompany === company.company ? "Enriching..." : "Enrich Company"}
-            </button>
-          </div>
-        ))}
+              <p className="text-xs text-slate-300">{label}</p>
+              <p className="mt-2 text-2xl font-semibold">{value}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-        {companies.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-white/10 p-8 text-center text-sm text-slate-400">
-            No company data yet. Add leads first to generate company intelligence.
-          </div>
-        )}
-      </div>
-    </div>
-  );
+      <section className="flex flex-wrap gap-3 rounded-xl border p-4">
+        <input
+          className="min-w-[260px] flex-1 rounded-lg border px-3 py-2 text-sm"
+          placeholder="Search companies or industries..."
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+
+        <select
+          className="rounded-lg border px-3 py-2 text-sm"
+          value={intentFilter}
+          onChange={(event) => setIntentFilter(event.target.value)}
+        >
+          <option value="all">All intent levels</option>
+          <option value="High">High intent</option>
+          <option value="Medium">Medium intent</option>
+        </select>
+
+        <button className="rounded-lg bg-black px-4 py-2 text-sm text-white">
+          Add Account
+        </button>
+      </section>
+
+      <section className="grid gap-5">
+        {filteredCompanies.map((company) => (
+          <article key={company.name} className="rounded-xl border p-6">
+            <div className="grid gap-6 xl:grid-cols-[1fr_auto]">
+              <div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border px-2 py-0.5 text-xs">
+                    {company.relationship}
+                  </span>
+
+                  <span className="rounded-full border px-2 py-0.5 text-xs">
+                    {company.intent} intent
+                  </span>
+
+                  <span className="rounded-full border px-2 py-0.5 text-xs">
+                    {company.industry}
+                  </span>
+                </div>
+
+                <h2 className="mt-3 text-2xl font-semibold">
+                  {company.name}
+                </h2>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Employees</p>
+                    <p className="mt-1 text-sm font-medium">
+                      {company.employees}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground">Revenue</p>
+                    <p className="mt-1 text-sm font-medium">
+                      {company.revenue}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Buying Contacts
+                    </p>
+                    <p className="mt-1 text-sm font-medium">
+                      {company.contacts}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Account Fit
+                    </p>
+                    <p className="mt-1 text-sm font-medium">
+                      {company.fit}/100
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5">
+                  <p className="text-xs text-muted-foreground">
+                    Detected Technology Stack
+                  </p>
+
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {company.tech.map((tool) => (
+                      <span
+                        key={tool}
+                        className="rounded-full bg-muted px-3 py-1 text-xs"
+                      >
+                        {tool}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-5 rounded-xl bg-muted p-4 text-sm">
+                  <strong>AI account strategy:</strong> {company.nextAction}
+                </div>
+              </div>
+
+              <div className="rounded-xl border p-6 text-center">
+                <p className="text-sm text-muted-foreground">
+                  Account Health
+                </p>
+
+                <p className="mt-2 text-5xl font-semibold">
+                  {company.fit}
+                </p>
+
+                <p className="mt-1 text-xs text-muted-foreground">
+                  / 100 fit score
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+                View Account
+              </button>
+
+              <button className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+                View Contacts
+              </button>
+
+              <button className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+                Add to Campaign
+              </button>
+
+              <button className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+                Run AI Research
+              </button>
+            </div>
+          </article>
+        ))}
+      </section>
+    </main>
+  )
 }
