@@ -1,12 +1,9 @@
-"use client"
-
-import { useEffect, useMemo, useState } from "react"
-import { createClient } from "@supabase/supabase-js"
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+const executiveMetrics = [
+  ["Pipeline Value", "$182K", "+24% forecast lift"],
+  ["Qualified Leads", "128", "+18 this week"],
+  ["Outbound Engine", "Operational", "Mock provider active"],
+  ["AI Productivity", "6 workflows", "4 active automations"],
+]
 
 const commandModules = [
   ["AI Assistant", "/dashboard/ai-assistant", "Ask ProspectIQ for next-best actions, lead prioritization, and campaign strategy.", "AI"],
@@ -21,91 +18,45 @@ const commandModules = [
   ["Integrations", "/dashboard/integrations", "Manage providers, API readiness, AI integrations, and production checklist.", "Ops"],
 ]
 
+const healthItems = [
+  ["Workspace", "Active", "Business plan enabled"],
+  ["Supabase", "Connected", "Auth and database online"],
+  ["Queue Engine", "Operational", "Enrollment and send queue verified"],
+  ["Engagement", "Active", "Manual events recorded"],
+  ["Email Provider", "Mock Mode", "Connect Resend or SES next"],
+  ["Security", "Review Needed", "RLS hardening required before production"],
+]
+
+const recommendations = [
+  {
+    title: "Connect real outbound provider",
+    body: "Replace mock delivery with Resend or Amazon SES to enable production email sending.",
+    href: "/dashboard/integrations",
+  },
+  {
+    title: "Enable workspace security policies",
+    body: "Implement Supabase RLS and role enforcement before opening team access broadly.",
+    href: "/dashboard/security",
+  },
+  {
+    title: "Move analytics to live executive reporting",
+    body: "Continue replacing static estimates with live campaign, CRM, and engagement aggregation.",
+    href: "/dashboard/analytics",
+  },
+]
+
+const launchChecklist = [
+  ["Workspace setup", true],
+  ["Outbound sequences", true],
+  ["Send queue", true],
+  ["Engagement tracking", true],
+  ["Team admin", true],
+  ["Production email", false],
+  ["Stripe live billing", false],
+  ["RLS policies", false],
+]
+
 export default function DashboardPage() {
-  const [workspace, setWorkspace] = useState<any>(null)
-  const [intelligence, setIntelligence] = useState<any>(null)
-  const [message, setMessage] = useState("Loading live workspace intelligence...")
-
-  async function loadDashboard() {
-    setMessage("Loading live workspace intelligence...")
-
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    const workspaceResponse = await fetch("/api/workspace/current", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: session?.user?.id,
-        email: session?.user?.email,
-      }),
-    })
-
-    const workspaceData = await workspaceResponse.json()
-    const currentWorkspace = workspaceData.workspace
-    setWorkspace(currentWorkspace)
-
-    if (!currentWorkspace?.id) {
-      setMessage("Workspace not found. Sign in again to load dashboard intelligence.")
-      return
-    }
-
-    const intelligenceResponse = await fetch("/api/dashboard/intelligence", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: currentWorkspace.id }),
-    })
-
-    const intelligenceData = await intelligenceResponse.json()
-
-    if (!intelligenceResponse.ok) {
-      setMessage(intelligenceData.error || "Failed to load dashboard intelligence.")
-      return
-    }
-
-    setIntelligence(intelligenceData.intelligence)
-    setMessage("")
-  }
-
-  useEffect(() => {
-    loadDashboard()
-  }, [])
-
-  const summary = intelligence?.summary || {}
-  const performance = intelligence?.performance || {}
-  const health = intelligence?.health || {}
-  const recommendations = intelligence?.recommendations || []
-
-  const executiveMetrics = [
-    ["CRM Contacts", summary.contacts ?? "...", "Live workspace contacts"],
-    ["Active Sequences", summary.activeSequences ?? "...", `${summary.sequences ?? 0} total sequences`],
-    ["Sent Emails", summary.sentEmails ?? "...", `${summary.queuedEmails ?? 0} queued`],
-    ["AI Workflows", summary.aiWorkflows ?? "...", `${summary.activeAiWorkflows ?? 0} active`],
-  ]
-
-  const healthItems = [
-    ["Workspace", health.workspace || "loading", workspace?.plan ? `${workspace.plan} plan` : "Workspace resolved"],
-    ["Supabase", health.supabase || "loading", "Auth and database status"],
-    ["Queue Engine", health.queueEngine || "loading", "Enrollment and send queue"],
-    ["Tracking", health.tracking || "loading", `${summary.engagementEvents ?? 0} engagement events`],
-    ["Email Provider", health.emailProvider || "loading", "Production provider pending"],
-    ["Security", health.security || "loading", "Review RLS before production"],
-  ]
-
-  const launchChecklist = useMemo(() => {
-    return [
-      ["Workspace setup", Boolean(workspace?.id)],
-      ["Outbound sequences", Number(summary.sequences || 0) > 0],
-      ["Send queue", Number(summary.sentEmails || 0) + Number(summary.queuedEmails || 0) > 0],
-      ["Engagement tracking", Number(summary.engagementEvents || 0) > 0],
-      ["Team admin", Number(summary.teamMembers || 0) > 0],
-      ["Production email", health.emailProvider === "production"],
-      ["Stripe live billing", false],
-      ["RLS policies", health.security === "secured"],
-    ]
-  }, [workspace?.id, summary, health])
-
   const completed = launchChecklist.filter(([, done]) => done).length
   const readiness = Math.round((completed / launchChecklist.length) * 100)
 
@@ -119,8 +70,8 @@ export default function DashboardPage() {
               AI Sales Intelligence Operating System
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-300">
-              Live workspace intelligence for CRM contacts, outbound sequences, queue delivery,
-              engagement signals, AI workflows, team readiness, and production operations.
+              Centralize sales intelligence, CRM execution, outbound automation, engagement signals,
+              AI workflows, executive reporting, and production readiness from one workspace.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
@@ -133,16 +84,10 @@ export default function DashboardPage() {
               <a href="/dashboard/sequences" className="rounded-xl border border-white/20 px-4 py-2 text-sm">
                 Launch Sequence
               </a>
-              <button onClick={loadDashboard} className="rounded-xl border border-white/20 px-4 py-2 text-sm">
-                Refresh Intelligence
-              </button>
+              <a href="/dashboard/reports" className="rounded-xl border border-white/20 px-4 py-2 text-sm">
+                Executive Reports
+              </a>
             </div>
-
-            {message && (
-              <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                {message}
-              </div>
-            )}
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
@@ -178,10 +123,18 @@ export default function DashboardPage() {
 
       <section className="grid gap-6 xl:grid-cols-[1.5fr_0.8fr]">
         <div className="rounded-2xl border p-6">
-          <h2 className="text-xl font-semibold">Command Modules</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Jump into each operating layer of ProspectIQ.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold">Command Modules</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Jump into each operating layer of ProspectIQ.
+              </p>
+            </div>
+
+            <a href="/dashboard/settings" className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+              Workspace Settings
+            </a>
+          </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             {commandModules.map(([title, href, description, tag]) => (
@@ -205,9 +158,7 @@ export default function DashboardPage() {
                 <div key={label} className="border-b pb-3 last:border-0">
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-sm text-muted-foreground">{label}</span>
-                    <span className="rounded-full border px-2 py-0.5 text-xs capitalize">
-                      {String(status).replaceAll("_", " ")}
-                    </span>
+                    <span className="rounded-full border px-2 py-0.5 text-xs">{status}</span>
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground">{note}</p>
                 </div>
@@ -219,12 +170,10 @@ export default function DashboardPage() {
             <h2 className="text-xl font-semibold">AI Recommendations</h2>
 
             <div className="mt-5 space-y-4">
-              {recommendations.map((item: any) => (
+              {recommendations.map((item) => (
                 <a key={item.title} href={item.href} className="block rounded-xl border p-4 hover:bg-muted">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium">{item.title}</p>
-                    <span className="rounded-full border px-2 py-0.5 text-xs">{item.priority}</span>
-                  </div>
+                  <p className="font-medium">{item.title}</p>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.body}</p>
                 </a>
               ))}
             </div>
@@ -234,32 +183,27 @@ export default function DashboardPage() {
 
       <section className="grid gap-6 xl:grid-cols-3">
         <div className="rounded-2xl border p-6">
-          <h2 className="text-xl font-semibold">Engagement Intelligence</h2>
+          <h2 className="text-xl font-semibold">Pipeline Intelligence</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Open, click, and reply metrics calculated from workspace engagement events.
+            Track revenue opportunities, stage movement, and weighted deal value.
           </p>
-          <div className="mt-5 grid gap-3">
-            <div className="rounded-xl bg-muted p-4">
-              <p className="text-sm text-muted-foreground">Open Rate</p>
-              <p className="mt-2 text-3xl font-semibold">{performance.openRate ?? 0}%</p>
-            </div>
-            <div className="rounded-xl bg-muted p-4">
-              <p className="text-sm text-muted-foreground">Reply Rate</p>
-              <p className="mt-2 text-3xl font-semibold">{performance.replyRate ?? 0}%</p>
-            </div>
+          <div className="mt-5 rounded-xl bg-muted p-5">
+            <p className="text-sm text-muted-foreground">Weighted Forecast</p>
+            <p className="mt-2 text-3xl font-semibold">$64K</p>
           </div>
+          <a href="/dashboard/crm/pipeline" className="mt-5 inline-flex rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+            Open Pipeline
+          </a>
         </div>
 
         <div className="rounded-2xl border p-6">
           <h2 className="text-xl font-semibold">Outbound Intelligence</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Live queue and delivery state from the outbound automation layer.
+            Monitor sequence enrollment, queued messages, simulated sends, and engagement.
           </p>
           <div className="mt-5 rounded-xl bg-muted p-5">
             <p className="text-sm text-muted-foreground">Delivery Mode</p>
-            <p className="mt-2 text-3xl font-semibold capitalize">
-              {String(health.emailProvider || "mock_mode").replaceAll("_", " ")}
-            </p>
+            <p className="mt-2 text-3xl font-semibold">Mock</p>
           </div>
           <a href="/dashboard/send-queue" className="mt-5 inline-flex rounded-lg border px-4 py-2 text-sm hover:bg-muted">
             Open Queue
@@ -269,11 +213,11 @@ export default function DashboardPage() {
         <div className="rounded-2xl border p-6">
           <h2 className="text-xl font-semibold">Executive Reporting</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Reporting summaries now align with the central intelligence layer.
+            Export CRM intelligence, account summaries, pipeline distribution, and campaign reports.
           </p>
           <div className="mt-5 rounded-xl bg-muted p-5">
-            <p className="text-sm text-muted-foreground">AI Runs</p>
-            <p className="mt-2 text-3xl font-semibold">{summary.aiRuns ?? 0}</p>
+            <p className="text-sm text-muted-foreground">Report Center</p>
+            <p className="mt-2 text-3xl font-semibold">Active</p>
           </div>
           <a href="/dashboard/reports" className="mt-5 inline-flex rounded-lg border px-4 py-2 text-sm hover:bg-muted">
             Open Reports
