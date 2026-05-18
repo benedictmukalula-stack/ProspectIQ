@@ -7,7 +7,7 @@ export async function executeAutonomousCorrections({
   workspaceId: string
   actions: any[]
 }) {
-  const executed = []
+  const executed: any[] = []
 
   for (const action of actions) {
     if (action.automationLevel !== "autonomous") {
