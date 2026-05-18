@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     const actions = generateAutonomousActions(intelligenceData.intelligence)
 
-    const createdEvents = []
+    const createdEvents: any[] = []
 
     if (createEvents) {
       for (const action of actions) {
