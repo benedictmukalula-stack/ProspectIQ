@@ -32,6 +32,10 @@ export async function runAgentRuntimeCycle({
       name: "executive",
       endpoint: "/api/agents/executive",
     },
+    {
+      name: "workflow_engine",
+      endpoint: "/api/agents/workflows",
+    },
   ]
 
   const results: AgentRuntimeResult[] = []
