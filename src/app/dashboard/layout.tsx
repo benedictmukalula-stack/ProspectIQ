@@ -10,7 +10,7 @@ const navigation = [
   ["Pipeline", "/dashboard/crm/pipeline"],
   ["Workflows", "/dashboard/workflows"],
   ["AI Workflows", "/dashboard/ai-workflows"],
-  ["Email Automation", "/dashboard/email-automation"],
+  ["Email Automation", "/dashboard/email"],
   ["Outbound", "/dashboard/outbound"],
   ["Sequences", "/dashboard/sequences"],
   ["Send Queue", "/dashboard/send-queue"],
