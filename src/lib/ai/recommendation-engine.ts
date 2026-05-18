@@ -4,12 +4,20 @@ type Intelligence = {
   health?: any
 }
 
+export type WorkspaceRecommendation = {
+  title: string
+  priority: "low" | "medium" | "high"
+  category: string
+  action: string
+  href: string
+}
+
 export function generateWorkspaceRecommendations(intelligence: Intelligence) {
   const summary = intelligence.summary || {}
   const performance = intelligence.performance || {}
   const health = intelligence.health || {}
 
-  const recommendations = []
+  const recommendations: WorkspaceRecommendation[] = []
 
   if ((summary.contacts || 0) === 0) {
     recommendations.push({
