@@ -4,7 +4,7 @@ const navigation = [
   ["Overview", "/dashboard"],
   ["AI Assistant", "/dashboard/ai-assistant"],
   ["Leads", "/dashboard/leads"],
-  ["LinkedIn Research", "/dashboard/linkedin-research"],
+  ["LinkedIn Research", "/dashboard/linkedin"],
   ["Companies", "/dashboard/companies"],
   ["CRM", "/dashboard/crm"],
   ["Pipeline", "/dashboard/pipeline"],
