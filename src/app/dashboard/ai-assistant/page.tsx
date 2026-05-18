@@ -1,450 +1,271 @@
-"use client";
+"use client"
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import {
-  createBrowserSupabaseClient,
-  isDemoMode,
-  supabaseAuth,
-} from "@/lib/supabase/client";
+import { useMemo, useState } from "react"
 
-type Lead = {
-  id: string;
-  name: string;
-  company: string;
-  role: string | null;
-  email: string | null;
-  score: number;
-  status: string;
-};
+const contextCards = [
+  ["Leads", "128", "Prioritize high-fit prospects and next actions."],
+  ["Pipeline", "$182K", "Forecast revenue and stalled opportunities."],
+  ["Outbound", "3 sequences", "Review email performance and engagement."],
+  ["AI Workflows", "6 workflows", "Run scoring, drafting, routing, and enrichment."],
+]
 
-type Campaign = {
-  id: string;
-  name: string;
-  audience: string;
-  status: string;
-  steps?: unknown;
-};
+const promptLibrary = [
+  "Which leads should I contact first today?",
+  "Summarize my pipeline and highlight stalled deals.",
+  "Draft a personalized outbound email for a logistics decision maker.",
+  "What campaigns should I run next?",
+  "Identify high-intent accounts from recent engagement.",
+  "Create follow-up tasks for prospects who opened emails.",
+]
 
-type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-};
+function generateMockAnswer(question: string, mode: string) {
+  const q = question.toLowerCase()
 
-const mockLeads: Lead[] = [
-  {
-    id: "1",
-    name: "Sarah M.",
-    company: "Atlas Freight",
-    role: "Operations Director",
-    email: "sarah@atlasfreight.example",
-    score: 92,
-    status: "Warm",
-  },
-  {
-    id: "2",
-    name: "James K.",
-    company: "TradeLink Africa",
-    role: "Procurement Lead",
-    email: "james@tradelink.example",
-    score: 88,
-    status: "Hot",
-  },
-];
+  if (q.includes("lead") || mode === "lead") {
+    return `Lead Intelligence Summary
 
-const starterMessages: ChatMessage[] = [
-  {
-    role: "assistant",
-    content:
-      "Ask me about your leads, hot accounts, pipeline, campaigns, or next best sales actions.",
-  },
-];
+Top recommended leads:
+1. Thabo Mokoena — Head of Operations, AfriBridge Logistics — Score 87/100
+2. Michael Dlamini — Managing Director, Dlamini Industrial Supply — Score 91/100
+3. Sarah Naidoo — Sales Director, Cape Trade Group — Score 74/100
 
-function normalizeQuestion(question: string) {
-  return question.toLowerCase().trim();
+Recommended next action:
+Prioritize Thabo and Michael for personalized outreach. Both show strong operational relevance and likely buying influence.
+
+Suggested workflow:
+Run lead scoring → create task → enroll into Standard ProspectIQ Outreach sequence.`
+  }
+
+  if (q.includes("pipeline") || mode === "pipeline") {
+    return `Pipeline Intelligence Summary
+
+Current pipeline health looks positive, with strong activity in Qualified, Proposal, and Negotiation stages.
+
+Key observations:
+- Weighted forecast is strongest in enterprise opportunities.
+- Negotiation-stage opportunities should receive senior follow-up.
+- Early-stage deals need more engagement signals before aggressive outreach.
+
+Recommended next action:
+Focus on opportunities older than 5 days and run an AI forecast review on high-value accounts.`
+  }
+
+  if (q.includes("email") || q.includes("outbound") || mode === "outbound") {
+    return `Outbound Strategy Recommendation
+
+Your outbound foundation is active:
+- Sequences are configured.
+- Send queue is operational.
+- Mock provider delivery works.
+- Engagement events are being recorded.
+
+Recommended next action:
+Move from mock sending to Resend or Amazon SES, then add bounce, open, click, and reply webhooks.
+
+Suggested email angle:
+Lead with operational visibility, workflow automation, and measurable pipeline consistency.`
+  }
+
+  if (q.includes("campaign") || mode === "campaign") {
+    return `Campaign Recommendation
+
+Best campaign to run next:
+"Operations Decision Makers Outreach"
+
+Audience:
+Operations Directors, Sales Directors, Managing Directors, and business owners in logistics, trade, training, and automotive services.
+
+Message angle:
+Position ProspectIQ as an AI sales intelligence platform that reduces manual research, improves prioritization, and standardizes follow-up.`
+  }
+
+  return `AI Workspace Summary
+
+ProspectIQ is operating as an AI sales intelligence command center.
+
+Strongest areas:
+- LinkedIn research
+- Lead scoring
+- CRM pipeline visibility
+- Outbound sequences
+- Send queue
+- AI workflows
+- Engagement tracking
+
+Recommended next action:
+Focus on turning mock workflows into production workflows by connecting email provider, enforcing RLS, and improving analytics depth.`
 }
 
-function buildCompanySummary(leads: Lead[]) {
-  const grouped = leads.reduce<Record<string, Lead[]>>((groups, lead) => {
-    groups[lead.company] = groups[lead.company] || [];
-    groups[lead.company].push(lead);
-    return groups;
-  }, {});
+export default function AIAssistantPage() {
+  const [mode, setMode] = useState("workspace")
+  const [question, setQuestion] = useState("")
+  const [answer, setAnswer] = useState("")
+  const [history, setHistory] = useState<any[]>([])
 
-  return Object.entries(grouped)
-    .map(([company, contacts]) => {
-      const avgScore = Math.round(
-        contacts.reduce((sum, lead) => sum + lead.score, 0) / contacts.length
-      );
-
-      return {
-        company,
-        contacts,
-        avgScore,
-        hotContacts: contacts.filter((lead) => lead.status === "Hot").length,
-        qualifiedContacts: contacts.filter((lead) => lead.status === "Qualified").length,
-      };
-    })
-    .sort((a, b) => b.avgScore - a.avgScore);
-}
-
-function answerFromContext(question: string, leads: Lead[], campaigns: Campaign[]) {
-  const q = normalizeQuestion(question);
-  const companies = buildCompanySummary(leads);
-  const hotLeads = leads.filter((lead) => lead.status === "Hot");
-  const qualifiedLeads = leads.filter((lead) => lead.status === "Qualified");
-  const topLeads = [...leads].sort((a, b) => b.score - a.score).slice(0, 5);
-  const averageScore = leads.length
-    ? Math.round(leads.reduce((sum, lead) => sum + lead.score, 0) / leads.length)
-    : 0;
-
-  if (q.includes("hot") || q.includes("priority") || q.includes("best lead")) {
-    if (!topLeads.length) return "No leads are available yet. Add leads first, then I can prioritize them.";
-
-    return `Top priority leads:\n\n${topLeads
-      .map(
-        (lead, index) =>
-          `${index + 1}. ${lead.name} at ${lead.company} — score ${lead.score}, status ${lead.status}. ${
-            lead.role ? `Role: ${lead.role}.` : "Role not captured."
-          }`
-      )
-      .join("\n")}\n\nRecommended action: start with the highest-scored leads and move Hot/Qualified contacts into active outreach.`;
-  }
-
-  if (q.includes("company") || q.includes("account")) {
-    if (!companies.length) return "No company intelligence is available yet because there are no leads.";
-
-    return `Top account intelligence:\n\n${companies
-      .slice(0, 5)
-      .map(
-        (company, index) =>
-          `${index + 1}. ${company.company} — ${company.contacts.length} contact(s), average score ${company.avgScore}, ${company.hotContacts} hot, ${company.qualifiedContacts} qualified.`
-      )
-      .join("\n")}\n\nRecommended action: focus on accounts with high average score and multiple contacts first.`;
-  }
-
-  if (q.includes("campaign") || q.includes("sequence") || q.includes("outreach")) {
-    if (!campaigns.length) {
-      return `No live campaigns are available yet. Create a campaign sequence for ${
-        hotLeads.length + qualifiedLeads.length
-      } Hot/Qualified lead(s).`;
-    }
-
-    return `Campaign summary:\n\n${campaigns
-      .map(
-        (campaign, index) =>
-          `${index + 1}. ${campaign.name} — audience: ${campaign.audience}, status: ${campaign.status}.`
-      )
-      .join("\n")}\n\nRecommended action: use Ready campaigns for Hot and Qualified leads first, then create nurture campaigns for Warm leads.`;
-  }
-
-  if (q.includes("pipeline") || q.includes("status") || q.includes("stage")) {
-    const statuses = ["New", "Warm", "Hot", "Qualified", "Contacted"];
-
-    return `Pipeline breakdown:\n\n${statuses
-      .map((status) => {
-        const count = leads.filter((lead) => lead.status === status).length;
-        return `${status}: ${count}`;
-      })
-      .join("\n")}\n\nRecommended action: move Warm leads toward Qualified by adding missing role/email data and running AI scoring.`;
-  }
-
-  if (q.includes("analytics") || q.includes("summary") || q.includes("overview")) {
-    return `Workspace overview:\n\nTotal leads: ${leads.length}\nAverage score: ${averageScore}\nHot leads: ${hotLeads.length}\nQualified leads: ${qualifiedLeads.length}\nCompanies: ${companies.length}\nCampaigns: ${campaigns.length}\n\nRecommended action: prioritize Hot leads, enrich companies with multiple contacts, and connect campaigns to outreach execution.`;
-  }
-
-  return `Based on your workspace data, you currently have ${leads.length} lead(s), ${companies.length} compan${
-    companies.length === 1 ? "y" : "ies"
-  }, and ${campaigns.length} campaign(s). Average lead score is ${averageScore}.\n\nTry asking:\n- Which leads should I contact first?\n- Which companies are strongest?\n- Summarize my pipeline\n- What campaign should I run next?`;
-}
-
-export default function AiAssistantPage() {
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [messages, setMessages] = useState<ChatMessage[]>(starterMessages);
-  const [question, setQuestion] = useState("");
-  const [loading, setLoading] = useState(!isDemoMode);
-  const [thinking, setThinking] = useState(false);
-  const [message, setMessage] = useState("");
-
-  async function getWorkspace() {
-    const supabase = createBrowserSupabaseClient();
-
-    if (!supabase) {
-      return {
-        supabase: null,
-        organizationId: null,
-        error: "Supabase client unavailable.",
-      };
-    }
-
-    const userResult = await supabaseAuth.getUser();
-
-    if (userResult.error || !userResult.data.user) {
-      return {
-        supabase,
-        organizationId: null,
-        error: "No active session.",
-      };
-    }
-
-    const workspaceResult = await supabase.rpc("ensure_user_workspace");
-
-    if (workspaceResult.error || !workspaceResult.data?.[0]) {
-      return {
-        supabase,
-        organizationId: null,
-        error: "Workspace not ready.",
-      };
-    }
-
+  const modeLabel = useMemo(() => {
     return {
-      supabase,
-      organizationId: workspaceResult.data[0].organization_id,
-      error: null,
-    };
-  }
+      workspace: "Workspace Intelligence",
+      lead: "Lead Prioritization",
+      pipeline: "Pipeline Strategy",
+      outbound: "Outbound Automation",
+      campaign: "Campaign Planning",
+    }[mode]
+  }, [mode])
 
-  useEffect(() => {
-    async function loadWorkspaceContext() {
-      if (isDemoMode) {
-        setLeads(mockLeads);
-        setCampaigns([]);
-        setLoading(false);
-        return;
-      }
+  function askAssistant(prompt?: string) {
+    const finalQuestion = prompt || question
 
-      const workspace = await getWorkspace();
+    if (!finalQuestion.trim()) return
 
-      if (workspace.error || !workspace.supabase || !workspace.organizationId) {
-        setMessage(`${workspace.error} Showing demo assistant context.`);
-        setLeads(mockLeads);
-        setCampaigns([]);
-        setLoading(false);
-        return;
-      }
+    const response = generateMockAnswer(finalQuestion, mode)
 
-      const [leadResult, campaignResult] = await Promise.all([
-        workspace.supabase
-          .from("leads")
-          .select("id,name,company,role,email,score,status")
-          .eq("organization_id", workspace.organizationId)
-          .order("created_at", { ascending: false }),
-        workspace.supabase
-          .from("campaigns")
-          .select("id,name,audience,status,steps")
-          .eq("organization_id", workspace.organizationId)
-          .order("created_at", { ascending: false }),
-      ]);
+    setAnswer(response)
+    setHistory((current) => [
+      {
+        question: finalQuestion,
+        answer: response,
+        mode,
+        createdAt: new Date().toISOString(),
+      },
+      ...current,
+    ])
 
-      if (leadResult.error) {
-        setMessage(`${leadResult.error.message}. Showing demo assistant context.`);
-        setLeads(mockLeads);
-      } else {
-        setLeads(leadResult.data?.length ? leadResult.data : mockLeads);
-      }
-
-      if (!campaignResult.error) {
-        setCampaigns(campaignResult.data || []);
-      }
-
-      setLoading(false);
-    }
-
-    loadWorkspaceContext();
-  }, []);
-
-  const overview = useMemo(() => {
-    const companies = buildCompanySummary(leads);
-    const averageScore = leads.length
-      ? Math.round(leads.reduce((sum, lead) => sum + lead.score, 0) / leads.length)
-      : 0;
-
-    return {
-      leads: leads.length,
-      companies: companies.length,
-      campaigns: campaigns.length,
-      averageScore,
-      hotLeads: leads.filter((lead) => lead.status === "Hot").length,
-      qualifiedLeads: leads.filter((lead) => lead.status === "Qualified").length,
-    };
-  }, [leads, campaigns]);
-
-  async function handleAsk(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!question.trim()) return;
-
-    const userQuestion = question.trim();
-    const userMessage: ChatMessage = { role: "user", content: userQuestion };
-
-    setMessages((current) => [...current, userMessage]);
-    setQuestion("");
-    setThinking(true);
-    setMessage("");
-
-    try {
-      const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: [...messages, userMessage].slice(-8),
-          workspaceContext: {
-            leads,
-            campaigns,
-            overview,
-          },
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const fallback = answerFromContext(userQuestion, leads, campaigns);
-        setMessages((current) => [
-          ...current,
-          {
-            role: "assistant",
-            content: `${fallback}\n\nLLM fallback note: ${data.error || "AI provider unavailable."}`,
-          },
-        ]);
-        setThinking(false);
-        return;
-      }
-
-      setMessages((current) => [
-        ...current,
-        {
-          role: "assistant",
-          content: data.content,
-        },
-      ]);
-    } catch {
-      const fallback = answerFromContext(userQuestion, leads, campaigns);
-      setMessages((current) => [
-        ...current,
-        {
-          role: "assistant",
-          content: `${fallback}\n\nLLM fallback note: AI provider unavailable.`,
-        },
-      ]);
-    }
-
-    setThinking(false);
+    setQuestion("")
   }
 
   return (
-    <div>
-      <div className="mb-8">
-        <p className="text-sm text-slate-400">ProspectIQ Intelligence</p>
-        <h1 className="mt-2 text-3xl font-bold">AI Assistant</h1>
-        <p className="mt-2 text-slate-400">
-          Ask questions against your live workspace context: leads, accounts, campaigns, and pipeline.
+    <main className="space-y-8">
+      <section className="rounded-2xl border bg-gradient-to-br from-slate-950 to-slate-800 p-8 text-white">
+        <p className="text-sm text-slate-300">ProspectIQ AI Copilot</p>
+        <h1 className="mt-2 text-3xl font-bold">Premium AI Assistant</h1>
+        <p className="mt-3 max-w-3xl text-sm text-slate-300">
+          Ask strategic questions across leads, companies, pipeline, campaigns, outbound activity, and AI workflows.
         </p>
-      </div>
 
-      {message && (
-        <div className="mb-6 rounded-xl border border-blue-400/30 bg-blue-400/10 p-4 text-sm text-blue-100">
-          {message}
+        <div className="mt-6 grid gap-4 md:grid-cols-4">
+          {contextCards.map(([label, value, description]) => (
+            <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4">
+              <p className="text-xs text-slate-300">{label}</p>
+              <p className="mt-2 text-2xl font-semibold">{value}</p>
+              <p className="mt-1 text-xs text-slate-400">{description}</p>
+            </div>
+          ))}
         </div>
-      )}
+      </section>
 
-      <div className="mb-6 grid gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Leads</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.leads}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Companies</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.companies}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Campaigns</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.campaigns}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Avg Score</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.averageScore}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Hot</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.hotLeads}</p>
-        </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-xs text-slate-400">Qualified</p>
-          <p className="mt-2 text-2xl font-bold">{loading ? "..." : overview.qualifiedLeads}</p>
-        </div>
-      </div>
-
-      <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <div className="mb-5">
-            <h2 className="text-lg font-semibold">Workspace Assistant</h2>
-            <p className="mt-1 text-sm text-slate-400">
-              Responses are generated from your current Supabase workspace data.
-            </p>
-          </div>
-
-          <div className="mb-5 max-h-[520px] space-y-4 overflow-y-auto rounded-xl border border-white/10 bg-slate-950 p-4">
-            {messages.map((chatMessage, index) => (
-              <div
-                key={`${chatMessage.role}-${index}`}
-                className={`rounded-xl p-4 text-sm ${
-                  chatMessage.role === "assistant"
-                    ? "bg-white/5 text-slate-200"
-                    : "ml-auto max-w-[85%] bg-blue-500 text-white"
-                }`}
-              >
-                <pre className="whitespace-pre-wrap font-sans">{chatMessage.content}</pre>
-              </div>
-            ))}
-          </div>
-
-          <form onSubmit={handleAsk} className="flex flex-col gap-3 md:flex-row">
-            <input
-              className="flex-1 rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
-              placeholder="Ask: Which leads should I contact first?"
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-            />
-
-            <button
-              disabled={thinking}
-              className="rounded-xl bg-blue-500 px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {thinking ? "Thinking..." : "Ask Assistant"}
-            </button>
-          </form>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-lg font-semibold">Suggested Questions</h2>
-
-          <div className="mt-4 space-y-3">
+      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+        <div className="rounded-xl border p-6">
+          <div className="flex flex-wrap gap-2">
             {[
-              "Which leads should I contact first?",
-              "Which companies are strongest?",
-              "Summarize my pipeline",
-              "What campaign should I run next?",
-              "Give me a workspace overview",
-            ].map((sample) => (
+              ["workspace", "Workspace"],
+              ["lead", "Leads"],
+              ["pipeline", "Pipeline"],
+              ["outbound", "Outbound"],
+              ["campaign", "Campaigns"],
+            ].map(([key, label]) => (
               <button
-                key={sample}
-                type="button"
-                onClick={() => setQuestion(sample)}
-                className="w-full rounded-xl border border-white/10 bg-slate-950 px-4 py-3 text-left text-sm text-slate-300 hover:border-blue-400/40"
+                key={key}
+                onClick={() => setMode(key)}
+                className={`rounded-lg border px-4 py-2 text-sm hover:bg-muted ${mode === key ? "bg-muted" : ""}`}
               >
-                {sample}
+                {label}
               </button>
             ))}
           </div>
 
-          <div className="mt-6 rounded-xl border border-emerald-400/20 bg-emerald-400/10 p-4 text-sm text-emerald-100">
-            This assistant now uses a secure server-side LLM route when OPENAI_API_KEY or ZHIPU_API_KEY is configured. It falls back to deterministic workspace intelligence if the provider is unavailable.
+          <div className="mt-6">
+            <p className="text-sm font-medium">{modeLabel}</p>
+            <textarea
+              className="mt-3 min-h-36 w-full rounded-xl border p-4 text-sm"
+              placeholder="Ask ProspectIQ AI what to do next..."
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+            />
+
+            <div className="mt-3 flex flex-wrap gap-3">
+              <button onClick={() => askAssistant()} className="rounded-lg bg-black px-4 py-2 text-sm text-white">
+                Ask Assistant
+              </button>
+              <button onClick={() => setQuestion("")} className="rounded-lg border px-4 py-2 text-sm hover:bg-muted">
+                Clear
+              </button>
+            </div>
           </div>
+
+          {answer && (
+            <div className="mt-6 rounded-xl bg-muted p-5">
+              <h2 className="font-semibold">AI Recommendation</h2>
+              <pre className="mt-3 whitespace-pre-wrap text-sm font-sans leading-6">{answer}</pre>
+
+              <div className="mt-5 flex flex-wrap gap-3">
+                <a href="/dashboard/tasks" className="rounded-lg border px-4 py-2 text-sm hover:bg-background">
+                  Create Task
+                </a>
+                <a href="/dashboard/sequences" className="rounded-lg border px-4 py-2 text-sm hover:bg-background">
+                  Add to Sequence
+                </a>
+                <a href="/dashboard/ai-workflows" className="rounded-lg border px-4 py-2 text-sm hover:bg-background">
+                  Run Workflow
+                </a>
+              </div>
+            </div>
+          )}
         </div>
-      </div>
-    </div>
-  );
+
+        <aside className="space-y-6">
+          <div className="rounded-xl border p-6">
+            <h2 className="text-lg font-semibold">Suggested Prompts</h2>
+            <div className="mt-4 space-y-2">
+              {promptLibrary.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => askAssistant(prompt)}
+                  className="w-full rounded-lg border p-3 text-left text-sm hover:bg-muted"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border p-6">
+            <h2 className="text-lg font-semibold">Assistant Readiness</h2>
+            <div className="mt-4 space-y-3 text-sm">
+              {[
+                ["Workspace context", "Active"],
+                ["Mock reasoning", "Active"],
+                ["Workflow actions", "Ready"],
+                ["Live LLM provider", "Pending"],
+                ["CRM writeback", "Pending"],
+              ].map(([label, status]) => (
+                <div key={label} className="flex justify-between border-b pb-2 last:border-0">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span>{status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section className="rounded-xl border p-6">
+        <h2 className="text-lg font-semibold">Recent AI Conversations</h2>
+
+        <div className="mt-4 space-y-3">
+          {history.length ? (
+            history.map((item, index) => (
+              <div key={index} className="rounded-lg border p-4">
+                <p className="text-sm font-medium">{item.question}</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {item.mode} · {new Date(item.createdAt).toLocaleString()}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground">No AI questions asked in this session yet.</p>
+          )}
+        </div>
+      </section>
+    </main>
+  )
 }
