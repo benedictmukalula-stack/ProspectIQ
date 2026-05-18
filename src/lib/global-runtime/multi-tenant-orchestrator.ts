@@ -9,7 +9,7 @@ export async function runMultiTenantRuntime({
   workspaces: any[]
   createEvents?: boolean
 }) {
-  const results = []
+  const results: any[] = []
 
   for (const workspace of workspaces) {
     try {
