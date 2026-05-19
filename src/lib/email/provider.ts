@@ -1,45 +1,29 @@
-export async function sendEmail({
-  to,
-  subject,
-  body,
-}: {
-  to: string
-  subject: string
-  body: string
-}) {
-  if (process.env.DISABLE_REAL_EMAIL === "true" || !process.env.RESEND_API_KEY) {
-    return {
-      provider: "mock",
-      messageId: `mock_${Date.now()}`,
-      status: "sent",
-      simulated: true,
-    }
-  }
+import { getEmailProvider } from "@/lib/email";
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: process.env.EMAIL_FROM || "ProspectIQ <onboarding@resend.dev>",
-      to,
-      subject,
-      text: body,
-    }),
-  })
+export type SendEmailPayload = {
+  to: string | string[];
+  subject: string;
+  html?: string;
+  body?: string;
+  text?: string;
+};
 
-  const data = await response.json()
+export type SendEmailResult = {
+  success: boolean;
+  provider?: string;
+  providerId?: string;
+  messageId?: string;
+  simulated?: boolean;
+  error?: string;
+};
 
-  if (!response.ok) {
-    throw new Error(data?.message || "Email provider send failed")
-  }
+export interface EmailProvider {
+  send(payload: SendEmailPayload): Promise<SendEmailResult>;
+}
 
-  return {
-    provider: "resend",
-    messageId: data.id,
-    status: "sent",
-    simulated: false,
-  }
+export async function sendEmail(
+  payload: SendEmailPayload
+): Promise<SendEmailResult> {
+  const provider = getEmailProvider();
+  return provider.send(payload);
 }
