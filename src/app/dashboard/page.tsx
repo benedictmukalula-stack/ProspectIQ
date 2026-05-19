@@ -26,6 +26,7 @@ const commandModules = [
 export default function DashboardPage() {
   const [workspace, setWorkspace] = useState<any>(null)
   const [intelligence, setIntelligence] = useState<any>(null)
+  const [activityEvents, setActivityEvents] = useState<any[]>([])
   const [message, setMessage] = useState("Loading live workspace intelligence...")
 
   async function loadDashboard() {
@@ -67,6 +68,14 @@ export default function DashboardPage() {
     }
 
     setIntelligence(intelligenceData.intelligence)
+
+    const activityResponse = await fetch("/api/activity/feed")
+    const activityData = await activityResponse.json()
+
+    if (activityData.success) {
+      setActivityEvents(activityData.events || [])
+    }
+
     setMessage("")
   }
 
@@ -214,6 +223,43 @@ export default function DashboardPage() {
                   <p className="mt-1 text-xs text-muted-foreground">{note}</p>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border p-6">
+            <h2 className="text-xl font-semibold">Live Activity Feed</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Realtime operational intelligence across outbound delivery,
+              engagement, and AI systems.
+            </p>
+
+            <div className="mt-5 space-y-4">
+              {activityEvents.length === 0 ? (
+                <div className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">
+                  No activity events yet.
+                </div>
+              ) : (
+                activityEvents.map((event) => (
+                  <div key={event.id} className="rounded-xl border p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-medium">{event.title}</span>
+                      <span className="rounded-full border px-2 py-0.5 text-xs capitalize">
+                        {event.severity}
+                      </span>
+                    </div>
+
+                    {event.description && (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        {event.description}
+                      </p>
+                    )}
+
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {new Date(event.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
