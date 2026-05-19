@@ -32,6 +32,12 @@ export default function DashboardPage() {
     delivered: 0,
     failed: 0,
   })
+  const [systemPulse, setSystemPulse] = useState<any>({
+    activityEvents: 0,
+    engagementEvents: 0,
+    queueOperations: 0,
+    systemStatus: "loading",
+  })
   const [message, setMessage] = useState("Loading live workspace intelligence...")
 
   async function loadDashboard() {
@@ -90,6 +96,18 @@ export default function DashboardPage() {
     if (metricsData.success) {
       setQueueMetrics(
         metricsData.metrics
+      )
+    }
+
+    const pulseResponse =
+      await fetch("/api/system/pulse")
+
+    const pulseData =
+      await pulseResponse.json()
+
+    if (pulseData.success) {
+      setSystemPulse(
+        pulseData.pulse
       )
     }
 
@@ -160,6 +178,36 @@ export default function DashboardPage() {
               Live workspace intelligence for CRM contacts, outbound sequences, queue delivery,
               engagement signals, AI workflows, team readiness, and production operations.
             </p>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-4">
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-xs text-slate-400">System Status</p>
+                <p className="mt-1 text-sm font-semibold capitalize text-green-300">
+                  {String(systemPulse.systemStatus).replaceAll("_", " ")}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-xs text-slate-400">Activity Events</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {systemPulse.activityEvents ?? 0}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-xs text-slate-400">Engagement Events</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {systemPulse.engagementEvents ?? 0}
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-xs text-slate-400">Queue Operations</p>
+                <p className="mt-1 text-sm font-semibold">
+                  {systemPulse.queueOperations ?? 0}
+                </p>
+              </div>
+            </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
               <a href="/dashboard/ai-assistant" className="rounded-xl bg-white px-4 py-2 text-sm font-medium text-black">
