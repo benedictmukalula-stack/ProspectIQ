@@ -1,31 +1,35 @@
-import { trackEvent }
-  from "./events";
+import { trackEvent } from "./events";
 
-export async function simulateEngagement(
-  messageId: string
-) {
+export async function simulateEngagement({
+  workspaceId,
+  outboundMessageId,
+}: {
+  workspaceId?: string | null;
+  outboundMessageId: string;
+}) {
   await trackEvent({
+    workspaceId,
+    outboundMessageId,
     type: "delivered",
-    messageId,
   });
 
-  const opened =
-    Math.random() > 0.3;
+  const opened = Math.random() > 0.3;
 
   if (opened) {
     await trackEvent({
+      workspaceId,
+      outboundMessageId,
       type: "opened",
-      messageId,
     });
   }
 
-  const clicked =
-    Math.random() > 0.6;
+  const clicked = Math.random() > 0.6;
 
   if (clicked) {
     await trackEvent({
+      workspaceId,
+      outboundMessageId,
       type: "clicked",
-      messageId,
     });
   }
 }
