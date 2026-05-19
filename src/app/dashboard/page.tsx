@@ -1,7 +1,7 @@
-import { ExecutiveHero } from "@/components/system-ui/executive-hero"
-import { EnterpriseCard } from "@/components/system-ui/enterprise-card"
 "use client"
 
+import { ExecutiveHero } from "@/components/system-ui/executive-hero"
+import { EnterpriseCard } from "@/components/system-ui/enterprise-card"
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 
