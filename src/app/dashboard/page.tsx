@@ -81,6 +81,12 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadDashboard()
+
+    const interval = setInterval(() => {
+      loadDashboard()
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [])
 
   const summary = intelligence?.summary || {}
