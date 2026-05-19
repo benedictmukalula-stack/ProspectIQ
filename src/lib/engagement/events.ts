@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createActivityEvent } from "@/lib/activity/events";
 
 export type EngagementEventType =
   | "delivered"
@@ -45,6 +46,27 @@ export async function trackEvent({
       error: error.message,
     };
   }
+
+  await createActivityEvent({
+    workspaceId,
+    type: `engagement_${type}`,
+    severity:
+      type === "bounced" || type === "failed"
+        ? "warning"
+        : type === "replied"
+          ? "high"
+          : "success",
+    title: `Engagement event: ${type}`,
+    description: outboundMessageId
+      ? `Outbound message ${outboundMessageId} recorded ${type}.`
+      : `Outbound engagement event recorded: ${type}.`,
+    metadata: {
+      outboundMessageId,
+      provider,
+      providerEventId,
+      ...(metadata || {}),
+    },
+  });
 
   return {
     success: true,
