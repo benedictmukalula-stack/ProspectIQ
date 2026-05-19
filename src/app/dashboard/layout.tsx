@@ -3,6 +3,7 @@ import Link from "next/link"
 const navigation = [
   ["Overview", "/dashboard"],
   ["AI Assistant", "/dashboard/ai-assistant"],
+  ["Executive", "/dashboard/executive"],
   ["Leads", "/dashboard/leads"],
   ["LinkedIn Research", "/dashboard/linkedin"],
   ["Companies", "/dashboard/companies"],
