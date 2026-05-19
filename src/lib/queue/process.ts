@@ -1,6 +1,7 @@
 import { createActivityEvent } from "@/lib/activity/events";
 import { simulateEngagement } from "@/lib/engagement/simulate";
 import { sendEmail } from "@/lib/email/provider";
+import { recordQueueMetric } from "@/lib/metrics/queue";
 
 type QueueItem = {
   workspaceId?: string | null;
@@ -54,6 +55,24 @@ export async function processOutboundQueue(
           outboundMessageId: delivery.messageId,
         });
       }
+    }
+
+    if (!delivery.success) {
+      await recordQueueMetric({
+        workspaceId: item.workspaceId,
+        processed: 1,
+        delivered: 0,
+        failed: 1,
+      })
+    }
+
+    if (!delivery.success) {
+      await recordQueueMetric({
+        workspaceId: item.workspaceId,
+        processed: 1,
+        delivered: 0,
+        failed: 1,
+      })
     }
 
     results.push({
