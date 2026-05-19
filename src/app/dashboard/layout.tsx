@@ -32,6 +32,7 @@ const navigation = [
   ["AI Council", "/dashboard/council"],
   ["Risk Center", "/dashboard/risk"],
   ["Infrastructure", "/dashboard/infrastructure"],
+  ["Simulation", "/dashboard/simulation"],
   ["Predictions", "/dashboard/predictions"],
   ["Execution", "/dashboard/execution"],
   ["Team", "/dashboard/team"],
