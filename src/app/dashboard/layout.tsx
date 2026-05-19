@@ -30,6 +30,7 @@ const navigation = [
   ["Semantic Intelligence", "/dashboard/semantic"],
   ["Strategy", "/dashboard/strategy"],
   ["AI Council", "/dashboard/council"],
+  ["Risk Center", "/dashboard/risk"],
   ["Predictions", "/dashboard/predictions"],
   ["Execution", "/dashboard/execution"],
   ["Team", "/dashboard/team"],
