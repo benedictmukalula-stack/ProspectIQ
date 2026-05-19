@@ -27,6 +27,7 @@ const navigation = [
   ["Governance", "/dashboard/governance"],
   ["Benchmarks", "/dashboard/benchmarks"],
   ["Command Graph", "/dashboard/command-graph"],
+  ["Semantic Intelligence", "/dashboard/semantic"],
   ["Predictions", "/dashboard/predictions"],
   ["Execution", "/dashboard/execution"],
   ["Team", "/dashboard/team"],
