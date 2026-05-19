@@ -27,6 +27,11 @@ export default function DashboardPage() {
   const [workspace, setWorkspace] = useState<any>(null)
   const [intelligence, setIntelligence] = useState<any>(null)
   const [activityEvents, setActivityEvents] = useState<any[]>([])
+  const [queueMetrics, setQueueMetrics] = useState<any>({
+    processed: 0,
+    delivered: 0,
+    failed: 0,
+  })
   const [message, setMessage] = useState("Loading live workspace intelligence...")
 
   async function loadDashboard() {
@@ -76,6 +81,18 @@ export default function DashboardPage() {
       setActivityEvents(activityData.events || [])
     }
 
+    const metricsResponse =
+      await fetch("/api/metrics/queue")
+
+    const metricsData =
+      await metricsResponse.json()
+
+    if (metricsData.success) {
+      setQueueMetrics(
+        metricsData.metrics
+      )
+    }
+
     setMessage("")
   }
 
@@ -97,7 +114,11 @@ export default function DashboardPage() {
   const executiveMetrics = [
     ["CRM Contacts", summary.contacts ?? "...", "Live workspace contacts"],
     ["Active Sequences", summary.activeSequences ?? "...", `${summary.sequences ?? 0} total sequences`],
-    ["Sent Emails", summary.sentEmails ?? "...", `${summary.queuedEmails ?? 0} queued`],
+    [
+      "Queue Throughput",
+      queueMetrics.processed ?? 0,
+      `${queueMetrics.delivered ?? 0} delivered · ${queueMetrics.failed ?? 0} failed`
+    ],
     ["AI Workflows", summary.aiWorkflows ?? "...", `${summary.activeAiWorkflows ?? 0} active`],
   ]
 
