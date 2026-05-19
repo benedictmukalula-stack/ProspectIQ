@@ -29,6 +29,7 @@ const navigation = [
   ["Command Graph", "/dashboard/command-graph"],
   ["Semantic Intelligence", "/dashboard/semantic"],
   ["Strategy", "/dashboard/strategy"],
+  ["AI Council", "/dashboard/council"],
   ["Predictions", "/dashboard/predictions"],
   ["Execution", "/dashboard/execution"],
   ["Team", "/dashboard/team"],
