@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 import {
   BarChart,
   Bar,
@@ -93,7 +92,7 @@ export default function AnalyticsPage() {
     loadAnalytics()
   }, [])
 
-  const sentCount = queue.filter((item) => item.status === QUEUE_STATUS.SENT).length
+  const sentCount = queue.filter((item) => item.status === "sent").length
   const queuedCount = queue.filter((item) => item.status === "queued").length
   const openCount = events.filter((event) => event.event_type === "opened").length
   const clickCount = events.filter((event) => event.event_type === "clicked").length

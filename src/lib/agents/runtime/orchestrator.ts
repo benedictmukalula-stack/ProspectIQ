@@ -89,7 +89,7 @@ export async function runAgentRuntimeCycle({
     executedAt: new Date().toISOString(),
     results,
     totalSignals: results.reduce((sum, item) => sum + item.count, 0),
-    failedAgents: results.filter((item) => item.status === QUEUE_STATUS.FAILED).length,
+    failedAgents: results.filter((item) => item.status === "failed").length,
   }
 
   try {

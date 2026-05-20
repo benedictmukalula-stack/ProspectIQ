@@ -1,8 +1,8 @@
 export const QUEUE_STATUS = {
-  PENDING: QUEUE_STATUS.PENDING,
-  PROCESSING: QUEUE_STATUS.PROCESSING,
-  SENT: QUEUE_STATUS.SENT,
-  FAILED: QUEUE_STATUS.FAILED,
+  PENDING: "pending",
+  PROCESSING: "processing",
+  SENT: "sent",
+  FAILED: "failed",
 } as const;
 
 export type QueueStatus =
