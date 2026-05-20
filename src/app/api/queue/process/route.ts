@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-import { processOutboundQueue } from "@/lib/queue/process";
 import { recordQueueMetric } from "@/lib/metrics/queue";
+import { processOutboundQueue } from "@/lib/queue/process";
 import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
@@ -10,68 +10,130 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
-export async function POST() {
-  const { data, error } = await supabaseAdmin
-    .from("outbound_send_queue")
-    .select("*")
-    .eq("status", QUEUE_STATUS.PENDING)
-    .lte("scheduled_for", new Date().toISOString())
-    .limit(10);
+function addDays(days: number) {
+  const date = new Date();
+  date.setDate(date.getDate() + Number(days || 0));
+  return date.toISOString();
+}
 
-  if (error) {
+export async function POST() {
+  try {
+    const now = new Date().toISOString();
+
+    const { data: queueItems, error: selectError } = await supabaseAdmin
+      .from("outbound_send_queue")
+      .select("*")
+      .eq("status", QUEUE_STATUS.PENDING)
+      .is("sent_at", null)
+      .lte("scheduled_for", now)
+      .limit(10);
+
+    if (selectError) {
+      throw new Error(`Queue select failed: ${selectError.message}`);
+    }
+
+    if (!queueItems || queueItems.length === 0) {
+      return NextResponse.json({
+        success: true,
+        processed: 0,
+        message: "No pending queue items",
+      });
+    }
+
+    const results = await processOutboundQueue(
+      queueItems.map((item) => ({
+        workspaceId: item.workspace_id,
+        to: item.metadata?.contact_email || "knowledgecampsa@gmail.com",
+        subject: item.subject || "ProspectIQ Outreach",
+        body: item.body || "",
+      }))
+    );
+
+    for (let i = 0; i < queueItems.length; i++) {
+      const queueItem = queueItems[i];
+      const result = results[i];
+
+      const { error: queueUpdateError } = await supabaseAdmin
+        .from("outbound_send_queue")
+        .update({
+          status: result.success ? QUEUE_STATUS.SENT : QUEUE_STATUS.FAILED,
+          sent_at: result.success ? new Date().toISOString() : null,
+        })
+        .eq("id", queueItem.id);
+
+      if (queueUpdateError) {
+        throw new Error(`Queue update failed: ${queueUpdateError.message}`);
+      }
+
+      await recordQueueMetric({
+        workspaceId: queueItem.workspace_id,
+        processed: 1,
+        delivered: result.success ? 1 : 0,
+        failed: result.success ? 0 : 1,
+      });
+
+      if (!result.success) {
+        continue;
+      }
+
+      if (!queueItem.enrollment_id || !queueItem.sequence_id) {
+        continue;
+      }
+
+      const currentStepOrder = Number(queueItem.metadata?.step_order || 1);
+      const nextStepOrder = currentStepOrder + 1;
+
+      const { data: nextStep, error: nextStepError } = await supabaseAdmin
+        .from("outbound_sequence_steps")
+        .select("*")
+        .eq("sequence_id", queueItem.sequence_id)
+        .eq("step_order", nextStepOrder)
+        .maybeSingle();
+
+      if (nextStepError) {
+        throw new Error(`Next step lookup failed: ${nextStepError.message}`);
+      }
+
+      if (nextStep) {
+        const { error: enrollmentAdvanceError } = await supabaseAdmin
+          .from("outbound_enrollments")
+          .update({
+            current_step: nextStepOrder,
+            next_send_at: addDays(nextStep.delay_days || 0),
+            status: "active",
+          })
+          .eq("id", queueItem.enrollment_id);
+
+        if (enrollmentAdvanceError) {
+          throw new Error(`Enrollment advance failed: ${enrollmentAdvanceError.message}`);
+        }
+      } else {
+        const { error: enrollmentCompleteError } = await supabaseAdmin
+          .from("outbound_enrollments")
+          .update({
+            status: "completed",
+            next_send_at: null,
+          })
+          .eq("id", queueItem.enrollment_id);
+
+        if (enrollmentCompleteError) {
+          throw new Error(`Enrollment completion failed: ${enrollmentCompleteError.message}`);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      processed: results.length,
+      results,
+    });
+  } catch (error) {
     return NextResponse.json(
       {
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : "Queue processing failed",
       },
       { status: 500 }
     );
   }
-
-  if (!data || data.length === 0) {
-    return NextResponse.json({
-      success: true,
-      processed: 0,
-      message: "No pending queue items",
-    });
-  }
-
-  const results = await processOutboundQueue(
-    data.map((item) => ({
-      workspaceId: item.workspace_id,
-      to: item.metadata?.contact_email || item.recipient || "knowledgecampsa@gmail.com",
-      subject: item.subject || "ProspectIQ Outreach",
-      body: item.body || "",
-    }))
-  );
-
-  for (let i = 0; i < data.length; i++) {
-    const queueItem = data[i];
-    const result = results[i];
-
-    await supabaseAdmin
-      .from("outbound_send_queue")
-      .update({
-        status: result.success ? QUEUE_STATUS.SENT : QUEUE_STATUS.FAILED,
-        sent_at: result.success ? new Date().toISOString() : null,
-        failed_at: result.success ? null : new Date().toISOString(),
-        provider_message_id: result.messageId,
-        error: result.error || null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", queueItem.id);
-
-    await recordQueueMetric({
-      workspaceId: queueItem.workspace_id,
-      processed: 1,
-      delivered: result.success ? 1 : 0,
-      failed: result.success ? 0 : 1,
-    });
-  }
-
-  return NextResponse.json({
-    success: true,
-    processed: results.length,
-    results,
-  });
 }
