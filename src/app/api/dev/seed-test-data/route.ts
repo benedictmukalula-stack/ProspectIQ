@@ -14,11 +14,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing workspaceId" }, { status: 400 })
     }
 
+    const timestamp = Date.now()
+
     const { data: company, error: companyError } = await supabaseAdmin
       .from("crm_companies")
       .insert({
         workspace_id: workspaceId,
-        name: "Knowledge Camp Test Company",
+        name: `Knowledge Camp Test Company ${timestamp}`,
         domain: "knowledgecamp.co.za",
         industry: "Training",
       })
@@ -47,7 +49,7 @@ export async function POST(req: Request) {
       .from("outbound_sequences")
       .insert({
         workspace_id: workspaceId,
-        name: "Standard ProspectIQ Test Outreach",
+        name: `Standard ProspectIQ 3-Step Test Outreach ${timestamp}`,
         status: "active",
       })
       .select("*")
@@ -55,20 +57,37 @@ export async function POST(req: Request) {
 
     if (sequenceError) throw new Error(sequenceError.message)
 
-    const { data: step, error: stepError } = await supabaseAdmin
+    const { data: steps, error: stepsError } = await supabaseAdmin
       .from("outbound_sequence_steps")
-      .insert({
-        sequence_id: sequence.id,
-        step_order: 1,
-        channel: "email",
-        subject: "Testing ProspectIQ outbound queue",
-        body: "Hi there, this is a test message from ProspectIQ queue automation.",
-        delay_days: 0,
-      })
+      .insert([
+        {
+          sequence_id: sequence.id,
+          step_order: 1,
+          channel: "email",
+          subject: "Improving sales intelligence visibility",
+          body: "Hi there, this is step 1 from ProspectIQ automation.",
+          delay_days: 0,
+        },
+        {
+          sequence_id: sequence.id,
+          step_order: 2,
+          channel: "email",
+          subject: "Following up on ProspectIQ",
+          body: "Hi there, this is step 2 follow-up from ProspectIQ automation.",
+          delay_days: 0,
+        },
+        {
+          sequence_id: sequence.id,
+          step_order: 3,
+          channel: "email",
+          subject: "Final check-in from ProspectIQ",
+          body: "Hi there, this is step 3 final follow-up from ProspectIQ automation.",
+          delay_days: 0,
+        },
+      ])
       .select("*")
-      .single()
 
-    if (stepError) throw new Error(stepError.message)
+    if (stepsError) throw new Error(stepsError.message)
 
     const { data: enrollment, error: enrollmentError } = await supabaseAdmin
       .from("outbound_enrollments")
@@ -90,7 +109,7 @@ export async function POST(req: Request) {
       company,
       contact,
       sequence,
-      step,
+      steps,
       enrollment,
     })
   } catch (error) {
