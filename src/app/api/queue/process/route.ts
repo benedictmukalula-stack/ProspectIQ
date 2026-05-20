@@ -16,6 +16,20 @@ function addDays(days: number) {
   return date.toISOString();
 }
 
+async function hasReply(enrollmentId: string) {
+  const { count, error } = await supabaseAdmin
+    .from("engagement_events")
+    .select("*", { count: "exact", head: true })
+    .eq("enrollment_id", enrollmentId)
+    .eq("type", "replied");
+
+  if (error) {
+    return false;
+  }
+
+  return Number(count || 0) > 0;
+}
+
 export async function POST() {
   try {
     const now = new Date().toISOString();
@@ -40,8 +54,41 @@ export async function POST() {
       });
     }
 
+    const sendableItems: typeof queueItems = [];
+
+    for (const item of queueItems) {
+      if (item.enrollment_id && await hasReply(item.enrollment_id)) {
+        await supabaseAdmin
+          .from("outbound_send_queue")
+          .update({
+            status: QUEUE_STATUS.FAILED,
+          })
+          .eq("id", item.id);
+
+        await supabaseAdmin
+          .from("outbound_enrollments")
+          .update({
+            status: "replied",
+            next_send_at: null,
+          })
+          .eq("id", item.enrollment_id);
+
+        continue;
+      }
+
+      sendableItems.push(item);
+    }
+
+    if (sendableItems.length === 0) {
+      return NextResponse.json({
+        success: true,
+        processed: 0,
+        message: "No sendable queue items. Enrollments may have replies.",
+      });
+    }
+
     const results = await processOutboundQueue(
-      queueItems.map((item) => ({
+      sendableItems.map((item) => ({
         workspaceId: item.workspace_id,
         to: item.metadata?.contact_email || "knowledgecampsa@gmail.com",
         subject: item.subject || "ProspectIQ Outreach",
@@ -49,8 +96,8 @@ export async function POST() {
       }))
     );
 
-    for (let i = 0; i < queueItems.length; i++) {
-      const queueItem = queueItems[i];
+    for (let i = 0; i < sendableItems.length; i++) {
+      const queueItem = sendableItems[i];
       const result = results[i];
 
       const { error: queueUpdateError } = await supabaseAdmin
@@ -72,11 +119,7 @@ export async function POST() {
         failed: result.success ? 0 : 1,
       });
 
-      if (!result.success) {
-        continue;
-      }
-
-      if (!queueItem.enrollment_id || !queueItem.sequence_id) {
+      if (!result.success || !queueItem.enrollment_id || !queueItem.sequence_id) {
         continue;
       }
 
