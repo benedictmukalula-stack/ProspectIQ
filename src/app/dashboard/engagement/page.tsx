@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 import { FeatureGate } from "@/components/features/feature-gate"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,7 +17,7 @@ export default function EngagementPage() {
   const [message, setMessage] = useState("")
 
   const sentMessages = useMemo(
-    () => queue.filter((item) => item.status === QUEUE_STATUS.SENT),
+    () => queue.filter((item) => item.status === "sent"),
     [queue]
   )
 

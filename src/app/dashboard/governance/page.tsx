@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -122,7 +121,7 @@ export default function GovernancePage() {
   const stats = useMemo(() => {
     return {
       total: approvals.length,
-      pending: approvals.filter((item) => item.status === QUEUE_STATUS.PENDING).length,
+      pending: approvals.filter((item) => item.status === "pending").length,
       approved: approvals.filter((item) => item.status === "approved").length,
       blocked: approvals.filter((item) => item.status === "blocked").length,
       rejected: approvals.filter((item) => item.status === "rejected").length,
@@ -223,7 +222,7 @@ export default function GovernancePage() {
                 </h2>
 
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Decision: {approval.decision?.outcome || QUEUE_STATUS.PENDING} · Risk:{" "}
+                  Decision: {approval.decision?.outcome || "pending"} · Risk:{" "}
                   {approval.decision?.risk || "unknown"}
                 </p>
 
@@ -237,7 +236,7 @@ export default function GovernancePage() {
               </div>
 
               <div className="flex flex-wrap items-start gap-2 xl:justify-end">
-                {approval.status === QUEUE_STATUS.PENDING && (
+                {approval.status === "pending" && (
                   <>
                     <button
                       onClick={() => updateApproval(approval.id, "approved")}

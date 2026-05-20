@@ -1,4 +1,3 @@
-import { QUEUE_STATUS } from "@/lib/queue/status";
 export type CouncilOpinion = {
   agent: string
   role: string
@@ -19,7 +18,7 @@ export function generateExecutiveCouncil({
   const pipelineRisk = prediction?.pipelineRiskScore || 0
   const conversion = prediction?.conversionProbability || 0
   const strategicReadiness = strategy?.summary?.strategicReadiness || 0
-  const pendingApprovals = governance?.approvals?.filter?.((item: any) => item.status === QUEUE_STATUS.PENDING).length || 0
+  const pendingApprovals = governance?.approvals?.filter?.((item: any) => item.status === "pending").length || 0
   const semanticHealth = semantic?.semanticGraph?.semanticHealth || 0
 
   opinions.push({

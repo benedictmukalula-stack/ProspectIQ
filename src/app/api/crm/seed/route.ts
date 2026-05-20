@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -77,7 +76,7 @@ export async function POST(req: Request) {
         source: "crm_seed",
         contact_id: contact.id,
       },
-      status: QUEUE_STATUS.PENDING,
+      status: "pending",
     })
 
     await supabaseAdmin.from("activity_timeline").insert({

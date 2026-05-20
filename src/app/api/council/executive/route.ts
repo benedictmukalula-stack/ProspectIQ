@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { generateExecutiveCouncil } from "@/lib/council/executive-council"
 import { calculateCouncilConsensus } from "@/lib/coordination/consensus-engine"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,7 +58,7 @@ export async function POST(req: NextRequest) {
         strategicReadiness: strategy.summary?.strategicReadiness,
         semanticHealth: semantic.semanticGraph?.semanticHealth,
         pendingApprovals:
-          governance.approvals?.filter?.((item: any) => item.status === QUEUE_STATUS.PENDING).length || 0,
+          governance.approvals?.filter?.((item: any) => item.status === "pending").length || 0,
       },
     })
   } catch (error: any) {

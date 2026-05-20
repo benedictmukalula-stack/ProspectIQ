@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -136,7 +135,7 @@ export default function ExecutiveDashboardPage() {
     )
   }, [snapshots, prediction, runtime])
 
-  const pendingApprovals = approvals.filter((item: any) => item.status === QUEUE_STATUS.PENDING).length
+  const pendingApprovals = approvals.filter((item: any) => item.status === "pending").length
 
   return (
     <main className="space-y-8">

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { runAI } from "@/lib/ai/provider"
-import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -157,7 +156,7 @@ export async function POST(req: Request) {
       await supabaseAdmin
         .from("ai_workflow_runs")
         .update({
-          status: QUEUE_STATUS.FAILED,
+          status: "failed",
           error: message,
           completed_at: new Date().toISOString(),
         })
