@@ -67,7 +67,7 @@ export async function POST(req: Request) {
           channel: step.channel || "email",
           subject: step.subject,
           body,
-          status: "queued",
+          status: "pending",
           scheduled_for: new Date().toISOString(),
           metadata: {
             sequence_name: enrollment.outbound_sequences?.name,

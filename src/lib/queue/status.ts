@@ -2,7 +2,7 @@ export const OUTBOUND_STATUS = {
   PENDING: "pending",
   QUEUED: "queued",
   SENDING: "sending",
-  DELIVERED: "delivered",
+  SENT: "sent",
   OPENED: "opened",
   CLICKED: "clicked",
   REPLIED: "replied",
