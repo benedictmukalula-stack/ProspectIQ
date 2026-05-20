@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { analyzeInfrastructureHealth } from "@/lib/infrastructure/infrastructure-agent"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 export async function POST(req: NextRequest) {
   try {
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
         failedAgents: runtime.failedAgents || 0,
         snapshots: snapshots.snapshots?.length || 0,
         pendingApprovals:
-          approvals.approvals?.filter?.((item: any) => item.status === "pending").length || 0,
+          approvals.approvals?.filter?.((item: any) => item.status === QUEUE_STATUS.PENDING).length || 0,
       },
     })
   } catch (error: any) {

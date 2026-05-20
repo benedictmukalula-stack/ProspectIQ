@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { createActivityEvent } from "@/lib/activity/events";
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 export type EngagementEventType =
   | "delivered"
@@ -7,7 +8,7 @@ export type EngagementEventType =
   | "clicked"
   | "replied"
   | "bounced"
-  | "failed";
+  | QUEUE_STATUS.FAILED;
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -51,7 +52,7 @@ export async function trackEvent({
     workspaceId,
     type: `engagement_${type}`,
     severity:
-      type === "bounced" || type === "failed"
+      type === "bounced" || type === QUEUE_STATUS.FAILED
         ? "warning"
         : type === "replied"
           ? "high"

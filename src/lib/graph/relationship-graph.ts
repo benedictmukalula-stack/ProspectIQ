@@ -1,3 +1,4 @@
+import { QUEUE_STATUS } from "@/lib/queue/status";
 export type GraphNode = {
   id: string
   type: "workspace" | "contact" | "sequence" | "email" | "workflow" | "agent" | "signal"
@@ -128,7 +129,7 @@ export function buildWorkspaceCommandGraph({
         source: contactId,
         target: emailId,
         type: "received_email",
-        strength: message.status === "sent" ? 80 : 50,
+        strength: message.status === QUEUE_STATUS.SENT ? 80 : 50,
       })
     }
 

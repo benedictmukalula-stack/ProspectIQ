@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,7 +27,7 @@ export async function POST(req: Request) {
         entity_type: entityType || null,
         entity_id: entityId || null,
         payload: payload || {},
-        status: "pending",
+        status: QUEUE_STATUS.PENDING,
       })
       .select("*")
       .single()

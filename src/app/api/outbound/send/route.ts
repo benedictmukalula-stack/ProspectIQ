@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { sendEmail } from "@/lib/email/provider"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
         await supabaseAdmin
           .from("outbound_send_queue")
           .update({
-            status: "failed",
+            status: QUEUE_STATUS.FAILED,
             error: "Missing recipient email",
           })
           .eq("id", item.id)
@@ -56,7 +57,7 @@ export async function POST(req: Request) {
       await supabaseAdmin
         .from("outbound_send_queue")
         .update({
-          status: "sent",
+          status: QUEUE_STATUS.SENT,
           sent_at: new Date().toISOString(),
           metadata: {
             ...(item.metadata || {}),
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
         workspace_id: workspaceId,
         queue_id: item.id,
         contact_id: item.contact_id,
-        event_type: "sent",
+        event_type: QUEUE_STATUS.SENT,
         provider: delivery.provider,
         provider_message_id: delivery.messageId,
         metadata: delivery,

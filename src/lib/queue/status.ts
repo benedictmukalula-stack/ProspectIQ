@@ -1,13 +1,9 @@
-export const OUTBOUND_STATUS = {
-  PENDING: "pending",
-  QUEUED: "queued",
-  SENDING: "sending",
-  SENT: "sent",
-  OPENED: "opened",
-  CLICKED: "clicked",
-  REPLIED: "replied",
-  BOUNCED: "bounced",
-  FAILED: "failed",
+export const QUEUE_STATUS = {
+  PENDING: QUEUE_STATUS.PENDING,
+  PROCESSING: QUEUE_STATUS.PROCESSING,
+  SENT: QUEUE_STATUS.SENT,
+  FAILED: QUEUE_STATUS.FAILED,
 } as const;
 
-export type OutboundStatus = typeof OUTBOUND_STATUS[keyof typeof OUTBOUND_STATUS];
+export type QueueStatus =
+  (typeof QUEUE_STATUS)[keyof typeof QUEUE_STATUS];

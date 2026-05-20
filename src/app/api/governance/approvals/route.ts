@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { evaluateExecutionPolicy } from "@/lib/policies/execution-policy"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY")
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
             ? "approved"
             : decision.outcome === "blocked"
               ? "blocked"
-              : "pending",
+              : QUEUE_STATUS.PENDING,
       })
       .select("*")
       .single()

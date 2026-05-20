@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 
 import { processOutboundQueue } from "@/lib/queue/process";
 import { recordQueueMetric } from "@/lib/metrics/queue";
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,7 @@ export async function POST() {
   const { data, error } = await supabaseAdmin
     .from("outbound_send_queue")
     .select("*")
-    .eq("status", "pending")
+    .eq("status", QUEUE_STATUS.PENDING)
     .lte("scheduled_for", new Date().toISOString())
     .limit(10);
 
@@ -51,7 +52,7 @@ export async function POST() {
     await supabaseAdmin
       .from("outbound_send_queue")
       .update({
-        status: result.success ? "sent" : "failed",
+        status: result.success ? QUEUE_STATUS.SENT : QUEUE_STATUS.FAILED,
         sent_at: result.success ? new Date().toISOString() : null,
         failed_at: result.success ? null : new Date().toISOString(),
         provider_message_id: result.messageId,

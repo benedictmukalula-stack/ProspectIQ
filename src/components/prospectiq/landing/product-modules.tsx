@@ -7,6 +7,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { ScrollReveal } from "./scroll-reveal";
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 export function ProductModules() {
   return (
@@ -189,22 +190,22 @@ export function ProductModules() {
               {/* Mini sequence mockup */}
               <div className="flex flex-wrap items-center gap-3">
                 {[
-                  { step: 1, label: "Introduction", status: "sent" },
-                  { step: 2, label: "Value Prop", status: "sent" },
-                  { step: 3, label: "Case Study", status: "pending" },
-                  { step: 4, label: "Follow-up", status: "pending" },
+                  { step: 1, label: "Introduction", status: QUEUE_STATUS.SENT },
+                  { step: 2, label: "Value Prop", status: QUEUE_STATUS.SENT },
+                  { step: 3, label: "Case Study", status: QUEUE_STATUS.PENDING },
+                  { step: 4, label: "Follow-up", status: QUEUE_STATUS.PENDING },
                 ].map((item, i) => (
                   <div key={item.step} className="flex items-center gap-3">
                     <div
                       className={`flex items-center gap-2 rounded-lg border px-3 py-2 ${
-                        item.status === "sent"
+                        item.status === QUEUE_STATUS.SENT
                           ? "border-emerald-500/30 bg-emerald-500/10"
                           : "border-white/[0.06] bg-white/[0.03]"
                       }`}
                     >
                       <span
                         className={`flex h-5 w-5 items-center justify-center rounded text-[10px] font-bold ${
-                          item.status === "sent"
+                          item.status === QUEUE_STATUS.SENT
                             ? "bg-emerald-500 text-white"
                             : "bg-white/[0.06] text-zinc-500"
                         }`}
@@ -213,7 +214,7 @@ export function ProductModules() {
                       </span>
                       <span
                         className={`text-xs ${
-                          item.status === "sent"
+                          item.status === QUEUE_STATUS.SENT
                             ? "text-emerald-300"
                             : "text-zinc-500"
                         }`}

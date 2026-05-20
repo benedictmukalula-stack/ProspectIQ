@@ -1,7 +1,8 @@
+import { QUEUE_STATUS } from "@/lib/queue/status";
 export type AgentRuntimeResult = {
   agent: string
   count: number
-  status: "completed" | "failed"
+  status: "completed" | QUEUE_STATUS.FAILED
   data?: any
   error?: string
 }
@@ -60,7 +61,7 @@ export async function runAgentRuntimeCycle({
         results.push({
           agent: agent.name,
           count: 0,
-          status: "failed",
+          status: QUEUE_STATUS.FAILED,
           error: data.error || "Agent failed",
         })
 
@@ -77,7 +78,7 @@ export async function runAgentRuntimeCycle({
       results.push({
         agent: agent.name,
         count: 0,
-        status: "failed",
+        status: QUEUE_STATUS.FAILED,
         error: error.message || "Agent runtime error",
       })
     }
@@ -89,7 +90,7 @@ export async function runAgentRuntimeCycle({
     executedAt: new Date().toISOString(),
     results,
     totalSignals: results.reduce((sum, item) => sum + item.count, 0),
-    failedAgents: results.filter((item) => item.status === "failed").length,
+    failedAgents: results.filter((item) => item.status === QUEUE_STATUS.FAILED).length,
   }
 
   try {

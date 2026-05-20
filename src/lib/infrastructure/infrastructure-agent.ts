@@ -1,4 +1,5 @@
 import {
+import { QUEUE_STATUS } from "@/lib/queue/status";
   InfrastructureRisk,
   summarizeInfrastructureRisks,
 } from "@/lib/resilience/resilience-engine"
@@ -64,7 +65,7 @@ export function analyzeInfrastructureHealth({
   }
 
   const pendingApprovals =
-    approvals?.filter?.((item: any) => item.status === "pending").length || 0
+    approvals?.filter?.((item: any) => item.status === QUEUE_STATUS.PENDING).length || 0
 
   if (pendingApprovals > 5) {
     risks.push({

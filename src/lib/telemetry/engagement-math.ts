@@ -1,3 +1,4 @@
+import { QUEUE_STATUS } from "@/lib/queue/status";
 export function safePercent(numerator: number, denominator: number) {
   if (!denominator || denominator <= 0) return 0
   return Math.min(100, Math.max(0, Math.round((numerator / denominator) * 100)))
@@ -21,7 +22,7 @@ export function normalizeEngagementMetrics({
   queue: any[]
   engagement: any[]
 }) {
-  const sent = queue.filter((item) => item.status === "sent")
+  const sent = queue.filter((item) => item.status === QUEUE_STATUS.SENT)
   const sentCount = sent.length
 
   const openedEvents = engagement.filter((event) => event.event_type === "opened")

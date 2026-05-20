@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
           channel: step.channel || "email",
           subject: step.subject,
           body,
-          status: "pending",
+          status: QUEUE_STATUS.PENDING,
           scheduled_for: new Date().toISOString(),
           metadata: {
             sequence_name: enrollment.outbound_sequences?.name,

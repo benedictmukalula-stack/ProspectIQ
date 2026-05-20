@@ -1,4 +1,5 @@
 import { runAgentRuntimeCycle } from "@/lib/agents/runtime/orchestrator"
+import { QUEUE_STATUS } from "@/lib/queue/status";
 
 export async function runMultiTenantRuntime({
   baseUrl,
@@ -27,7 +28,7 @@ export async function runMultiTenantRuntime({
     } catch (error: any) {
       results.push({
         workspace,
-        status: "failed",
+        status: QUEUE_STATUS.FAILED,
         error: error.message || "Workspace runtime failed",
       })
     }
@@ -37,7 +38,7 @@ export async function runMultiTenantRuntime({
     executedAt: new Date().toISOString(),
     workspaceCount: workspaces.length,
     completed: results.filter((item) => item.status === "completed").length,
-    failed: results.filter((item) => item.status === "failed").length,
+    failed: results.filter((item) => item.status === QUEUE_STATUS.FAILED).length,
     totalSignals: results.reduce(
       (sum, item: any) => sum + Number(item.result?.totalSignals || 0),
       0
