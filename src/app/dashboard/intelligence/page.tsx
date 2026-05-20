@@ -64,33 +64,62 @@ type RecommendationResponse = {
   recommendations: Recommendation[]
 }
 
+type CopilotAction = {
+  type: "follow_up" | "nurture" | "review" | "operations"
+  priority: "critical" | "high" | "medium" | "low"
+  title: string
+  reasoning: string
+  suggestedMessage?: string
+  contactId?: string
+  email?: string
+}
+
+type CopilotResponse = {
+  success: boolean
+  summary: {
+    leads: number
+    salesReady: number
+    hot: number
+    warm: number
+    pendingQueue: number
+    failedQueue: number
+  }
+  actions: CopilotAction[]
+}
+
 const WORKSPACE_ID = "43eff06d-a85a-427e-a4ed-7423bfa7fc6e"
 
 export default function LeadIntelligencePage() {
   const [leadData, setLeadData] = useState<LeadResponse | null>(null)
   const [recommendationData, setRecommendationData] =
     useState<RecommendationResponse | null>(null)
+  const [copilotData, setCopilotData] = useState<CopilotResponse | null>(null)
   const [loading, setLoading] = useState(true)
 
   async function loadIntelligence() {
     setLoading(true)
 
-    const [leadRes, recommendationRes] = await Promise.all([
+    const [leadRes, recommendationRes, copilotRes] = await Promise.all([
       fetch(`/api/intelligence/leads?workspaceId=${WORKSPACE_ID}`, {
         cache: "no-store",
       }),
       fetch(`/api/intelligence/recommendations?workspaceId=${WORKSPACE_ID}`, {
         cache: "no-store",
       }),
+      fetch(`/api/intelligence/copilot?workspaceId=${WORKSPACE_ID}`, {
+        cache: "no-store",
+      }),
     ])
 
-    const [leadJson, recommendationJson] = await Promise.all([
+    const [leadJson, recommendationJson, copilotJson] = await Promise.all([
       leadRes.json(),
       recommendationRes.json(),
+      copilotRes.json(),
     ])
 
     setLeadData(leadJson)
     setRecommendationData(recommendationJson)
+    setCopilotData(copilotJson)
     setLoading(false)
   }
 
@@ -150,8 +179,8 @@ export default function LeadIntelligencePage() {
             Executive Lead Command Center
           </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            Engagement scoring, ranked leads, lifecycle intelligence, and
-            executive recommendations for revenue action.
+            Engagement scoring, ranked leads, lifecycle intelligence, executive
+            recommendations, and Copilot actions for revenue execution.
           </p>
         </div>
 
@@ -243,50 +272,65 @@ export default function LeadIntelligencePage() {
         </div>
       </section>
 
+      <section className="mt-8 rounded-2xl border border-violet-400/20 bg-violet-400/[0.05] p-6 shadow-2xl">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.25em] text-violet-300">
+              AI Copilot Actions
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">
+              Recommended Next Moves
+            </h2>
+            <p className="mt-2 max-w-3xl text-slate-300">
+              ProspectIQ converts live engagement, lead scoring, and outbound
+              state into practical revenue actions.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 text-center text-sm">
+            <MiniStat label="Hot" value={copilotData?.summary?.hot || 0} />
+            <MiniStat label="Warm" value={copilotData?.summary?.warm || 0} />
+            <MiniStat label="Queue" value={copilotData?.summary?.pendingQueue || 0} />
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          {(copilotData?.actions || []).map((action, index) => (
+            <CopilotActionCard key={`${action.title}-${index}`} action={action} />
+          ))}
+        </div>
+      </section>
+
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-          <h2 className="text-lg font-semibold">Lead Score Ranking</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Highest engagement-scored leads ranked first.
-          </p>
+        <ChartCard title="Lead Score Ranking" subtitle="Highest engagement-scored leads ranked first.">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={scoreData}>
+              <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="score" radius={[8, 8, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
 
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={scoreData}>
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="score" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
-          <h2 className="text-lg font-semibold">Lifecycle Distribution</h2>
-          <p className="mt-1 text-sm text-slate-400">
-            Lead temperature breakdown across the workspace.
-          </p>
-
-          <div className="mt-6 h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={lifecycleData}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius={100}
-                  label
-                >
-                  {lifecycleData.map((_, index) => (
-                    <Cell key={index} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        <ChartCard title="Lifecycle Distribution" subtitle="Lead temperature breakdown across the workspace.">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={lifecycleData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={100}
+                label
+              >
+                {lifecycleData.map((_, index) => (
+                  <Cell key={index} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </ChartCard>
       </section>
 
       <section className="mt-8 rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
@@ -360,6 +404,15 @@ function MetricCard({ label, value }: { label: string; value: number }) {
   )
 }
 
+function MiniStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/[0.04] px-4 py-3">
+      <div className="text-slate-400">{label}</div>
+      <div className="mt-1 text-xl font-semibold">{value}</div>
+    </div>
+  )
+}
+
 function RecommendationCard({ rec }: { rec: Recommendation }) {
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/70 p-5">
@@ -384,11 +437,62 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
   )
 }
 
+function CopilotActionCard({ action }: { action: CopilotAction }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-5">
+      <div className="flex items-center gap-3">
+        <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase text-violet-200">
+          {action.priority}
+        </span>
+        <span className="text-sm capitalize text-cyan-300">
+          {action.type.replace("_", " ")}
+        </span>
+      </div>
+
+      <h3 className="mt-4 text-lg font-semibold">{action.title}</h3>
+      <p className="mt-2 text-sm text-slate-400">{action.reasoning}</p>
+
+      {action.suggestedMessage && (
+        <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.04] p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
+            Suggested Message / Action
+          </p>
+          <p className="mt-2 text-sm leading-6 text-slate-200">
+            {action.suggestedMessage}
+          </p>
+        </div>
+      )}
+
+      {action.email && (
+        <p className="mt-3 text-xs text-slate-500">Contact: {action.email}</p>
+      )}
+    </div>
+  )
+}
+
 function HealthRow({ label, value }: { label: string; value: number }) {
   return (
     <div className="flex items-center justify-between rounded-xl border border-white/10 bg-slate-900/70 px-4 py-3">
       <span className="text-sm text-slate-400">{label}</span>
       <span className="text-lg font-semibold">{value}</span>
+    </div>
+  )
+}
+
+function ChartCard({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string
+  subtitle: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
+      <h2 className="text-lg font-semibold">{title}</h2>
+      <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
+      <div className="mt-6 h-72">{children}</div>
     </div>
   )
 }
