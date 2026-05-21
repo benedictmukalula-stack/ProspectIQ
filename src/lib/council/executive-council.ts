@@ -1,84 +1,128 @@
 export type CouncilOpinion = {
   agent: string
   role: string
-  position: "support" | "caution" | "block"
+  vote: "support" | "caution" | "block"
   confidence: number
   reasoning: string
   recommendation: string
 }
 
-export function generateExecutiveCouncil({
-  prediction,
-  strategy,
+export function buildExecutiveCouncilOpinions({
   governance,
-  semantic,
-}: any): CouncilOpinion[] {
+  forecast,
+  strategy,
+  simulation,
+  briefing,
+  commercial,
+}: {
+  governance: any
+  forecast: any
+  strategy: any
+  simulation: any
+  briefing: any
+  commercial: any
+}): CouncilOpinion[] {
   const opinions: CouncilOpinion[] = []
 
-  const pipelineRisk = prediction?.pipelineRiskScore || 0
-  const conversion = prediction?.conversionProbability || 0
-  const strategicReadiness = strategy?.summary?.strategicReadiness || 0
-  const pendingApprovals = governance?.approvals?.filter?.((item: any) => item.status === "pending").length || 0
-  const semanticHealth = semantic?.semanticGraph?.semanticHealth || 0
+  const governanceSummary = governance?.summary || {}
+  const forecastSummary = forecast?.summary || {}
+  const strategySummary = strategy?.summary || {}
+  const simulationSummary = simulation?.summary || {}
+  const briefingSummary = briefing?.summary || {}
+  const metering = commercial?.metering || commercial || {}
 
   opinions.push({
     agent: "Executive Agent",
     role: "Strategic Oversight",
-    position: pipelineRisk >= 70 ? "block" : pipelineRisk >= 50 ? "caution" : "support",
-    confidence: 88,
-    reasoning: `Pipeline risk is ${pipelineRisk}%.`,
+    vote:
+      briefingSummary.boardHealth === "At Risk"
+        ? "block"
+        : briefingSummary.boardHealth === "Developing"
+          ? "caution"
+          : "support",
+    confidence: briefingSummary.boardHealth === "Developing" ? 82 : 90,
+    reasoning: `Board health is ${briefingSummary.boardHealth || "unknown"}. Weighted pipeline score is ${briefingSummary.weightedPipelineScore || forecastSummary.weightedPipelineScore || 0}.`,
     recommendation:
-      pipelineRisk >= 50
-        ? "Prioritize risk reduction before scaling outbound execution."
-        : "Proceed with controlled revenue execution.",
+      briefingSummary.boardHealth === "Developing"
+        ? "Continue controlled growth acceleration while monitoring pipeline quality."
+        : "Proceed under executive monitoring.",
   })
 
   opinions.push({
     agent: "Revenue Agent",
     role: "Growth Forecasting",
-    position: conversion >= 65 ? "support" : "caution",
-    confidence: 82,
-    reasoning: `Conversion probability is ${conversion}%.`,
+    vote:
+      forecastSummary.forecastCategory === "at_risk"
+        ? "block"
+        : forecastSummary.forecastCategory === "developing"
+          ? "caution"
+          : "support",
+    confidence: 86,
+    reasoning: `Revenue forecast is ${forecastSummary.forecastCategory || "unknown"} with ${forecastSummary.engagementRate || 0}% engagement and ${forecastSummary.replyRate || 0}% reply rate.`,
     recommendation:
-      conversion >= 65
-        ? "Accelerate high-probability revenue motions."
-        : "Improve conversion inputs before aggressive scaling.",
+      forecastSummary.conversionOutlook ||
+      "Use forecast intelligence to prioritize revenue execution.",
   })
 
   opinions.push({
     agent: "Governance Agent",
     role: "Policy & Approval Control",
-    position: pendingApprovals > 3 ? "caution" : "support",
+    vote:
+      (governanceSummary.blocked || 0) > 0
+        ? "block"
+        : governanceSummary.humanApprovalRequired
+          ? "caution"
+          : "support",
     confidence: 91,
-    reasoning: `${pendingApprovals} approval requests are pending.`,
+    reasoning: `Governance mode is ${governanceSummary.governanceMode || "unknown"} with ${governanceSummary.blocked || 0} blocked and ${governanceSummary.requiresApproval || 0} requiring approval.`,
     recommendation:
-      pendingApprovals > 0
-        ? "Resolve pending approvals to reduce execution friction."
-        : "Governance queue is clear enough for normal execution.",
-  })
-
-  opinions.push({
-    agent: "Knowledge Agent",
-    role: "Semantic Intelligence",
-    position: semanticHealth >= 75 ? "support" : "caution",
-    confidence: 79,
-    reasoning: `Semantic health is ${semanticHealth}%.`,
-    recommendation:
-      semanticHealth >= 75
-        ? "Semantic context is strong enough for reasoning workflows."
-        : "Improve entity quality and relationship coverage.",
+      governanceSummary.humanApprovalRequired
+        ? "Proceed with supervised autonomy and keep human approval on monitored risk areas."
+        : "Governance permits autonomous execution.",
   })
 
   opinions.push({
     agent: "Strategy Agent",
     role: "Long-Horizon Planning",
-    position: strategicReadiness >= 70 ? "support" : "caution",
-    confidence: 84,
-    reasoning: `Strategic readiness is ${strategicReadiness}%.`,
+    vote:
+      strategySummary.strategicMode === "protective"
+        ? "block"
+        : strategySummary.strategicMode === "growth_acceleration"
+          ? "support"
+          : "caution",
+    confidence: 88,
+    reasoning: `Strategic mode is ${strategySummary.strategicMode || "unknown"} with leading vertical ${strategySummary.leadingVertical || "none"}.`,
     recommendation:
-      strategicReadiness >= 70
-        ? "Strategic plan is viable for execution."
-        : "Focus on high-priority initiatives before expansion.",
+      "Align execution with the current strategic mode and strongest vertical signal.",
+  })
+
+  opinions.push({
+    agent: "Simulation Agent",
+    role: "Scenario & Risk Modeling",
+    vote:
+      simulationSummary.riskiestScenario === "Delivery Risk Spike"
+        ? "caution"
+        : "support",
+    confidence: 84,
+    reasoning: `Best scenario is ${simulationSummary.bestScenario || "unknown"}; riskiest scenario is ${simulationSummary.riskiestScenario || "unknown"}.`,
+    recommendation:
+      "Use simulation results to scale the strongest scenario while monitoring modeled downside risk.",
+  })
+
+  opinions.push({
+    agent: "Commercial Agent",
+    role: "Plan, Usage & Monetization",
+    vote:
+      metering.commercialStatus === "over_limit"
+        ? "block"
+        : metering.commercialStatus === "near_limit"
+          ? "caution"
+          : "support",
+    confidence: 87,
+    reasoning: `Commercial status is ${metering.commercialStatus || "unknown"} on ${metering.plan || "unknown"} plan.`,
+    recommendation:
+      metering.upgradeRecommendation ||
+      "Monitor usage and entitlement health before scaling autonomous execution.",
   })
 
   return opinions
