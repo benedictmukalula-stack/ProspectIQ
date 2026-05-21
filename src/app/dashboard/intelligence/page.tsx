@@ -303,7 +303,7 @@ export default function LeadIntelligencePage() {
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
         <ChartCard title="Lead Score Ranking" subtitle="Highest engagement-scored leads ranked first.">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={scoreData}>
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis />
@@ -314,7 +314,7 @@ export default function LeadIntelligencePage() {
         </ChartCard>
 
         <ChartCard title="Lifecycle Distribution" subtitle="Lead temperature breakdown across the workspace.">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie
                 data={lifecycleData}
@@ -492,7 +492,7 @@ function ChartCard({
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl">
       <h2 className="text-lg font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-slate-400">{subtitle}</p>
-      <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">{children}</div>
+      <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">{children}</div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export function CTA() {
           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 px-6 py-16 text-center shadow-2xl shadow-emerald-500/20 sm:px-16 sm:py-20">
             {/* Decorative elements */}
             <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-white/5 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-white/5 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-white/5 blur-3xl min-h-[320px] w-full min-w-0" />
 
             <div className="relative z-10">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">

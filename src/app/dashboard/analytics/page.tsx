@@ -172,8 +172,8 @@ export default function AnalyticsPage() {
       <section className="grid gap-6 xl:grid-cols-2">
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Queue Status</h2>
-          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={statusData}>
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />
@@ -186,8 +186,8 @@ export default function AnalyticsPage() {
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Engagement Breakdown</h2>
-          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie data={engagementData} dataKey="value" nameKey="name" outerRadius={90} label>
                   {engagementData.map((_, index) => (
@@ -202,8 +202,8 @@ export default function AnalyticsPage() {
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Engagement Trend</h2>
-          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <LineChart data={trendData}>
                 <XAxis dataKey="date" />
                 <YAxis allowDecimals={false} />
@@ -218,8 +218,8 @@ export default function AnalyticsPage() {
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">AI Workflow Runs</h2>
-          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={workflowData}>
                 <XAxis dataKey="name" />
                 <YAxis allowDecimals={false} />

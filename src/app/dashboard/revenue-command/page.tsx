@@ -245,8 +245,8 @@ export default function RevenueCommandPage() {
             Current lifecycle distribution from revenue intelligence.
           </p>
 
-          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={leadChartData}>
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                 <YAxis />
