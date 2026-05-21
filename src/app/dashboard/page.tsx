@@ -13,6 +13,13 @@ const supabase = createClient(
 const commandModules = [
   ["AI Assistant", "/dashboard/ai-assistant", "Ask ProspectIQ for next-best actions, lead prioritization, and campaign strategy.", "AI"],
   ["Revenue Command", "/dashboard/revenue-command", "Unified AI revenue operations dashboard with agent insights, lead intelligence, pipeline health, and autonomous action recommendations.", "Revenue OS"],
+  ["Boardroom Intelligence", "/dashboard/executive", "Board-ready KPIs, executive briefing, strategic actions, and revenue health intelligence.", "Boardroom"],
+  ["Executive Governance", "/dashboard/governance", "Supervised autonomy, approval controls, execution permissions, and AI governance decisions.", "Governance"],
+  ["Revenue Forecasting", "/dashboard/predictions", "Pipeline outlook, conversion forecast, revenue risk, and projected growth signals.", "Forecast"],
+  ["Strategic Simulation", "/dashboard/simulation", "Model GTM scenarios, delivery risks, sequence changes, and vertical-focus outcomes.", "Simulation"],
+  ["Runtime Execution", "/dashboard/execution", "Autonomous runtime executor, policy enforcement, queue governance, and live operational actions.", "Runtime"],
+  ["Platform Intelligence", "/dashboard/benchmarks", "Cross-workspace intelligence, industry benchmarks, vertical performance, and platform learning.", "Mesh"],
+  ["Commercial Usage", "/dashboard/usage", "AI credit metering, plan entitlements, usage health, and commercial SaaS limits.", "Commercial"],
   ["Leads Intelligence", "/dashboard/leads", "Prioritize prospects by score, intent, source, and recommended next action.", "CRM"],
   ["Companies", "/dashboard/companies", "Analyze target accounts, fit, contacts, tech stack, and expansion potential.", "Accounts"],
   ["CRM Pipeline", "/dashboard/crm/pipeline", "Manage opportunities, stage movement, forecast value, and deal intelligence.", "Revenue"],
