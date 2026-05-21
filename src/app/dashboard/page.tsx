@@ -13,6 +13,7 @@ const supabase = createClient(
 const commandModules = [
   ["AI Assistant", "/dashboard/ai-assistant", "Ask ProspectIQ for next-best actions, lead prioritization, and campaign strategy.", "AI"],
   ["Revenue Command", "/dashboard/revenue-command", "Unified AI revenue operations dashboard with agent insights, lead intelligence, pipeline health, and autonomous action recommendations.", "Revenue OS"],
+  ["Enterprise Status", "/dashboard/enterprise-status", "Unified enterprise runtime status for governance, boardroom, commercial, platform mesh, and autonomous execution modules.", "Status"],
   ["Boardroom Intelligence", "/dashboard/executive", "Board-ready KPIs, executive briefing, strategic actions, and revenue health intelligence.", "Boardroom"],
   ["Executive Governance", "/dashboard/governance", "Supervised autonomy, approval controls, execution permissions, and AI governance decisions.", "Governance"],
   ["Revenue Forecasting", "/dashboard/predictions", "Pipeline outlook, conversion forecast, revenue risk, and projected growth signals.", "Forecast"],
