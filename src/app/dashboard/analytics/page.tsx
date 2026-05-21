@@ -22,6 +22,7 @@ const supabase = createClient(
 )
 
 export default function AnalyticsPage() {
+  const [mounted, setMounted] = useState(false)
   const [workspace, setWorkspace] = useState<any>(null)
   const [queue, setQueue] = useState<any[]>([])
   const [events, setEvents] = useState<any[]>([])
@@ -89,6 +90,7 @@ export default function AnalyticsPage() {
   }
 
   useEffect(() => {
+    setMounted(true)
     loadAnalytics()
   }, [])
 
@@ -173,6 +175,7 @@ export default function AnalyticsPage() {
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Queue Status</h2>
           <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={statusData}>
                 <XAxis dataKey="name" />
@@ -181,12 +184,16 @@ export default function AnalyticsPage() {
                 <Bar dataKey="value" />
               </BarChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
           </div>
         </div>
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Engagement Breakdown</h2>
           <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie data={engagementData} dataKey="value" nameKey="name" outerRadius={90} label>
@@ -197,12 +204,16 @@ export default function AnalyticsPage() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
           </div>
         </div>
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">Engagement Trend</h2>
           <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <LineChart data={trendData}>
                 <XAxis dataKey="date" />
@@ -213,12 +224,16 @@ export default function AnalyticsPage() {
                 <Line type="monotone" dataKey="replied" />
               </LineChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
           </div>
         </div>
 
         <div className="rounded-xl border p-6">
           <h2 className="text-lg font-semibold">AI Workflow Runs</h2>
           <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={workflowData}>
                 <XAxis dataKey="name" />
@@ -227,6 +242,9 @@ export default function AnalyticsPage() {
                 <Bar dataKey="value" />
               </BarChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
           </div>
         </div>
       </section>

@@ -98,6 +98,7 @@ export default function RevenueCommandPage() {
     useState<RecommendationResponse | null>(null)
   const [copilotData, setCopilotData] = useState<CopilotResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   async function loadCommandCenter() {
     setLoading(true)
@@ -134,6 +135,7 @@ export default function RevenueCommandPage() {
   }
 
   useEffect(() => {
+    setMounted(true)
     loadCommandCenter()
   }, [])
 
@@ -246,6 +248,7 @@ export default function RevenueCommandPage() {
           </p>
 
           <div className="mt-6 h-72 min-h-[288px] w-full min-w-0 min-h-[288px] w-full min-w-0">
+            {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart data={leadChartData}>
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
@@ -254,6 +257,9 @@ export default function RevenueCommandPage() {
                 <Bar dataKey="value" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
           </div>
         </div>
       </section>

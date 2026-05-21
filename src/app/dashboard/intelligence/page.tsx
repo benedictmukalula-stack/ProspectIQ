@@ -95,6 +95,7 @@ export default function LeadIntelligencePage() {
     useState<RecommendationResponse | null>(null)
   const [copilotData, setCopilotData] = useState<CopilotResponse | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   async function loadIntelligence() {
     setLoading(true)
@@ -124,6 +125,7 @@ export default function LeadIntelligencePage() {
   }
 
   useEffect(() => {
+    setMounted(true)
     loadIntelligence()
   }, [])
 
@@ -303,7 +305,8 @@ export default function LeadIntelligencePage() {
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
         <ChartCard title="Lead Score Ranking" subtitle="Highest engagement-scored leads ranked first.">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={scoreData}>
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis />
@@ -311,10 +314,14 @@ export default function LeadIntelligencePage() {
               <Bar dataKey="score" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
         </ChartCard>
 
         <ChartCard title="Lifecycle Distribution" subtitle="Lead temperature breakdown across the workspace.">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie
                 data={lifecycleData}
@@ -330,6 +337,9 @@ export default function LeadIntelligencePage() {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+          ) : (
+            <div className="flex h-full min-h-[288px] items-center justify-center text-sm text-slate-500">Loading chart...</div>
+          )}
         </ChartCard>
       </section>
 
