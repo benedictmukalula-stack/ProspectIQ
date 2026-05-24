@@ -120,7 +120,7 @@ export default function SimulationPage() {
             ],
             [
               "Scenarios",
-              summary.totalScenarios || 0,
+              summary.recipienttalScenarios || 0,
             ],
             [
               "Positive",

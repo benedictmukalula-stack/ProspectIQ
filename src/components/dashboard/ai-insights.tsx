@@ -1,7 +1,7 @@
 import {
   aiInsights,
   type AiInsight,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 import { TrendingUp, AlertTriangle, Lightbulb } from "lucide-react";
 
 function getInsightConfig(type: AiInsight["type"]) {

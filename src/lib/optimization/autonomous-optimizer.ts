@@ -1,4 +1,4 @@
-import type { SequenceLearningRule } from "@/lib/learning/sequence-learning-engine"
+import type { SequenceLearningRule } from "../lib/learning/sequence-learning-engine"
 
 type OptimizationAction = {
   type: string

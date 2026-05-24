@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { analyzeInfrastructureHealth } from "@/lib/infrastructure/infrastructure-agent"
+import { analyzeInfrastructureHealth } from "../lib/infrastructure/infrastructure-agent"
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       infrastructure,
       context: {
-        runtimeSignals: runtime.totalSignals || 0,
+        runtimeSignals: runtime.recipienttalSignals || 0,
         failedAgents: runtime.failedAgents || 0,
         snapshots: snapshots.snapshots?.length || 0,
         pendingApprovals:

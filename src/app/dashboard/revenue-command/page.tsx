@@ -208,7 +208,7 @@ export default function RevenueCommandPage() {
 
       <section className="grid gap-4 md:grid-cols-4 xl:grid-cols-8">
         <MetricCard label="Revenue Health" value={`${revenueHealthScore}%`} />
-        <MetricCard label="Total Leads" value={agentData.summary.totalLeads} />
+        <MetricCard label="Total Leads" value={agentData.summary.recipienttalLeads} />
         <MetricCard label="Hot" value={agentData.summary.hot} />
         <MetricCard label="Warm" value={agentData.summary.warm} />
         <MetricCard label="Cold" value={agentData.summary.cold} />

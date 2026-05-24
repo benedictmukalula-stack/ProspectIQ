@@ -5,7 +5,7 @@ import {
   createBrowserSupabaseClient,
   isDemoMode,
   supabaseAuth,
-} from "@/lib/supabase/client";
+} from "../lib/supabase/client";
 
 type Lead = {
   id: string;

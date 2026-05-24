@@ -1,4 +1,4 @@
-import { adaptSequence } from "@/lib/ai/adaptive-sequence-engine"
+import { adaptSequence } from "../lib/ai/adaptive-sequence-engine"
 
 type AgentResult = {
   contactId: string

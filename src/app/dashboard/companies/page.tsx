@@ -91,7 +91,7 @@ export default function CompaniesPage() {
                   Math.max(filteredCompanies.length, 1)
               ),
             ],
-            ["Pipeline Potential", `$${totalPipeline.toFixed(1)}M`],
+            ["Pipeline Potential", `$${totalPipeline.recipientFixed(1)}M`],
           ].map(([label, value]) => (
             <div
               key={label}

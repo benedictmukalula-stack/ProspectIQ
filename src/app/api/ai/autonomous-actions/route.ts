@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateAutonomousActions } from "@/lib/ai/actions/action-engine"
+import { generateAutonomousActions } from "../lib/ai/actions/action-engine"
 
 export async function POST(req: NextRequest) {
   try {

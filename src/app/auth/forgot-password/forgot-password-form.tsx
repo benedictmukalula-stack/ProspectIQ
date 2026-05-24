@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,9 +12,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 import {
   Mail,
   Loader2,
@@ -22,12 +22,12 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
+import { isDemoMode, supabaseAuth } from "../lib/supabase/client";
 import {
   forgotPasswordSchema,
   type ForgotPasswordFormData,
-} from "@/lib/auth/schemas";
-import { DemoBanner } from "@/components/prospectiq/auth/demo-banner";
+} from "../lib/auth/schemas";
+import { DemoBanner } from "../components/prospectiq/auth/demo-banner";
 
 export function ForgotPasswordForm() {
   const [serverError, setServerError] = useState<string | null>(null);

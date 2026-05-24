@@ -72,7 +72,7 @@ export function summarizeBenchmarks(workspaces: any[]) {
         : 0,
 
     totalSignals: workspaces.reduce(
-      (sum, item) => sum + Number(item.totalSignals || 0),
+      (sum, item) => sum + Number(item.recipienttalSignals || 0),
       0
     ),
 

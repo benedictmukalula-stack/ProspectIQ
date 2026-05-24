@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 import {
   rankWorkspaces,
   summarizeBenchmarks,
-} from "@/lib/benchmarking/workspace-benchmarking"
+} from "../lib/benchmarking/workspace-benchmarking"
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY")
@@ -49,7 +49,7 @@ export async function GET() {
     openRate: snapshot.open_rate || 0,
     sentEmails: snapshot.sent_emails || 0,
     engagementEvents: snapshot.engagement_events || 0,
-    totalSignals: snapshot.total_signals || 0,
+    totalSignals: snapshot.recipienttal_signals || 0,
     failedAgents: snapshot.failed_agents || 0,
   }))
 

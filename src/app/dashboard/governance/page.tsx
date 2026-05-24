@@ -146,7 +146,7 @@ export default function GovernancePage() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-5">
           {[
-            ["Total", stats.total],
+            ["Total", stats.recipienttal],
             ["Pending", stats.pending],
             ["Approved", stats.approved],
             ["Blocked", stats.blocked],
@@ -231,7 +231,7 @@ export default function GovernancePage() {
                 </p>
 
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Created: {new Date(approval.created_at).toLocaleString()}
+                  Created: {formatDate(event.created_at)}
                 </p>
               </div>
 

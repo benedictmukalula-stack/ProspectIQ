@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   analyzeExecutiveWorkspace,
   calculateExecutiveReadinessScore,
-} from "@/lib/agents/executive/executive-agent"
+} from "../lib/agents/executive/executive-agent"
 
 export async function POST(req: NextRequest) {
   try {

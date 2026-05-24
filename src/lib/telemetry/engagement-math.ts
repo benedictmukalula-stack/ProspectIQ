@@ -1,4 +1,4 @@
-import { QUEUE_STATUS } from "@/lib/queue/status";
+import { QUEUE_STATUS } from "../lib/queue/status";
 export function safePercent(numerator: number, denominator: number) {
   if (!denominator || denominator <= 0) return 0
   return Math.min(100, Math.max(0, Math.round((numerator / denominator) * 100)))

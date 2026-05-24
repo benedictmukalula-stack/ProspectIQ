@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { isDemoMode, supabaseAuth } from "@/lib/supabase/client";
+import { isDemoMode, supabaseAuth } from "../lib/supabase/client";
 
 export default function SignupForm() {
   const [workspaceName, setWorkspaceName] = useState("Knowledge Camp Global");

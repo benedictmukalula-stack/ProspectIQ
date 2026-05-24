@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { isSupabaseConfigured } from "../lib/supabase/client";
 
 export function createServerSupabaseClient() {
   if (!isSupabaseConfigured) {

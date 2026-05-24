@@ -222,7 +222,7 @@ export default function LeadIntelligencePage() {
       )}
 
       <section className="grid gap-4 md:grid-cols-5">
-        <MetricCard label="Total Leads" value={leadData.summary.total} />
+        <MetricCard label="Total Leads" value={leadData.summary.recipienttal} />
         <MetricCard label="Sales Ready" value={leadData.summary.salesReady} />
         <MetricCard label="Hot Leads" value={leadData.summary.hot} />
         <MetricCard label="Warm Leads" value={leadData.summary.warm} />

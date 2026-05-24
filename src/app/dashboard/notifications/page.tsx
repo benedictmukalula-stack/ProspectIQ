@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { useWorkspaceNotificationsRealtime } from "@/lib/realtime/use-workspace-notifications"
+import { useWorkspaceNotificationsRealtime } from "../lib/realtime/use-workspace-notifications"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -180,7 +180,7 @@ export default function NotificationsPage() {
                 </p>
 
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {new Date(item.created_at).toLocaleString()}
+                  {formatDate(event.created_at)}
                 </p>
               </div>
 

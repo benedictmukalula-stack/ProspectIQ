@@ -2,7 +2,7 @@ import {
   evaluateExecutionPolicy,
   ExecutionDecision,
   ExecutionPolicyInput,
-} from "@/lib/policies/execution-policy"
+} from "../lib/policies/execution-policy"
 
 export type DecisionEvaluation = ExecutionPolicyInput & {
   decision: ExecutionDecision

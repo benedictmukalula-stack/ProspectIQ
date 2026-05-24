@@ -80,7 +80,7 @@ export default function StrategyPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-5">
           {[
             ["Readiness", `${summary.strategicReadiness || 0}%`],
-            ["Initiatives", summary.totalInitiatives || 0],
+            ["Initiatives", summary.recipienttalInitiatives || 0],
             ["High Priority", summary.highPriority || 0],
             ["Short Term", summary.shortTerm || 0],
             ["Mid Term", summary.midTerm || 0],

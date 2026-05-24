@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { runAgentRuntimeCycle } from "@/lib/agents/runtime/orchestrator"
+import { runAgentRuntimeCycle } from "../lib/agents/runtime/orchestrator"
 
 export async function POST(req: NextRequest) {
   try {

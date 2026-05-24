@@ -56,11 +56,11 @@ export default function BenchmarksPage() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-5">
           {[
-            ["Workspaces", summary.totalWorkspaces || 0],
+            ["Workspaces", summary.recipienttalWorkspaces || 0],
             ["Avg Readiness", `${summary.avgReadiness || 0}%`],
             ["Avg Reply", `${summary.avgReplyRate || 0}%`],
-            ["Signals", summary.totalSignals || 0],
-            ["Failures", summary.totalFailures || 0],
+            ["Signals", summary.recipienttalSignals || 0],
+            ["Failures", summary.recipienttalFailures || 0],
           ].map(([label, value]) => (
             <div
               key={String(label)}
@@ -119,7 +119,7 @@ export default function BenchmarksPage() {
 
               <div>{workspace.replyRate}%</div>
 
-              <div>{workspace.totalSignals}</div>
+              <div>{workspace.recipienttalSignals}</div>
 
               <div>{workspace.failedAgents}</div>
             </div>

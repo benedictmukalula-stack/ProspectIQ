@@ -8,8 +8,8 @@ import {
 } from "lucide-react"
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker"
 
-import { cn } from "@/lib/utils"
-import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "../lib/utils"
+import { Button, buttonVariants } from "../components/ui/button"
 
 function Calendar({
   className,
@@ -111,7 +111,7 @@ function Calendar({
         range_end: cn("rounded-r-md bg-accent", defaultClassNames.range_end),
         today: cn(
           "bg-accent text-accent-foreground rounded-md data-[selected=true]:rounded-none",
-          defaultClassNames.today
+          defaultClassNames.recipientday
         ),
         outside: cn(
           "text-muted-foreground aria-selected:text-muted-foreground",
@@ -190,7 +190,7 @@ function CalendarDayButton({
       ref={ref}
       variant="ghost"
       size="icon"
-      data-day={day.date.toLocaleDateString()}
+      data-day={day.date.recipientLocaleDateString()}
       data-selected-single={
         modifiers.selected &&
         !modifiers.range_start &&

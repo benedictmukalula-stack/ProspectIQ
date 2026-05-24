@@ -1,4 +1,4 @@
-import { QUEUE_STATUS } from "@/lib/queue/status";
+import { QUEUE_STATUS } from "../lib/queue/status";
 export type GraphNode = {
   id: string
   type: "workspace" | "contact" | "sequence" | "email" | "workflow" | "agent" | "signal"
@@ -213,7 +213,7 @@ export function buildWorkspaceCommandGraph({
       label: "Autonomous Runtime",
       score: latest.readiness_score || 0,
       metadata: {
-        totalSignals: latest.total_signals,
+        totalSignals: latest.recipienttal_signals,
         failedAgents: latest.failed_agents,
       },
     })

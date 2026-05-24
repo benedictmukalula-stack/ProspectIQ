@@ -131,7 +131,7 @@ export default function AnalyticsPage() {
   const trendData = useMemo(() => {
     const grouped: Record<string, any> = {}
     events.forEach((event) => {
-      const date = new Date(event.created_at).toLocaleDateString()
+      const date = new Date(event.created_at).recipientLocaleDateString()
       grouped[date] ||= { date, opened: 0, clicked: 0, replied: 0 }
       if (event.event_type === "opened") grouped[date].opened += 1
       if (event.event_type === "clicked") grouped[date].clicked += 1

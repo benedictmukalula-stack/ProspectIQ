@@ -49,7 +49,7 @@ export class ResendProvider implements EmailProvider {
 
     const { data, error } = await resend.emails.send({
       from: process.env.EMAIL_FROM,
-      to: payload.to,
+      recipient_email: payload.recipient,
       subject: payload.subject,
       html,
       text,

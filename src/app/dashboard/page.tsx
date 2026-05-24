@@ -1,7 +1,8 @@
 "use client"
+import { useQueueRealtime } from "../lib/useQueueRealtime"
 
-import { ExecutiveHero } from "@/components/system-ui/executive-hero"
-import { EnterpriseCard } from "@/components/system-ui/enterprise-card"
+import { ExecutiveHero } from "../components/system-ui/executive-hero"
+import { EnterpriseCard } from "../components/system-ui/enterprise-card"
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 
@@ -339,7 +340,7 @@ export default function DashboardPage() {
                     )}
 
                     <p className="mt-2 text-xs text-muted-foreground">
-                      {new Date(event.created_at).toLocaleString()}
+                      {formatDate(event.created_at)}
                     </p>
                   </div>
                 ))

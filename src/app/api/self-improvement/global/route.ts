@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generatePlatformIntelligenceMesh } from "@/lib/global-intelligence/platform-intelligence-mesh"
-import { generateSelfImprovementDirectives } from "@/lib/self-improvement/self-improving-optimizer"
+import { generatePlatformIntelligenceMesh } from "../lib/global-intelligence/platform-intelligence-mesh"
+import { generateSelfImprovementDirectives } from "../lib/self-improvement/self-improving-optimizer"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

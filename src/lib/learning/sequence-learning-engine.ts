@@ -34,7 +34,7 @@ export type SequenceLearningRule = {
 
 export function generateSequenceLearningRules(memory: StrategicMemory) {
   const summary = memory.summary || {}
-  const topIndustry = memory.topIndustries?.[0]?.industry || "general market"
+  const topIndustry = memory.recipientpIndustries?.[0]?.industry || "general market"
 
   const rules: SequenceLearningRule[] = []
 

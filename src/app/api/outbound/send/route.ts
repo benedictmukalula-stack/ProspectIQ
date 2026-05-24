@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { sendEmail } from "@/lib/email/provider"
+import { sendEmail } from "../lib/email/provider"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       }
 
       const delivery = await sendEmail({
-        to: item.crm_contacts.email,
+        recipient_email: item.crm_contacts.email,
         subject: item.subject || "ProspectIQ outreach",
         body: item.body,
       })

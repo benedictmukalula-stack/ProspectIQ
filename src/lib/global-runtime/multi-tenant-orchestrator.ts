@@ -1,4 +1,4 @@
-import { runAgentRuntimeCycle } from "@/lib/agents/runtime/orchestrator"
+import { runAgentRuntimeCycle } from "../lib/agents/runtime/orchestrator"
 
 export async function runMultiTenantRuntime({
   baseUrl,
@@ -39,7 +39,7 @@ export async function runMultiTenantRuntime({
     completed: results.filter((item) => item.status === "completed").length,
     failed: results.filter((item) => item.status === "failed").length,
     totalSignals: results.reduce(
-      (sum, item: any) => sum + Number(item.result?.totalSignals || 0),
+      (sum, item: any) => sum + Number(item.result?.recipienttalSignals || 0),
       0
     ),
     results,

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { buildWorkspaceCommandGraph } from "@/lib/graph/relationship-graph"
+import { buildWorkspaceCommandGraph } from "../lib/graph/relationship-graph"
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY")

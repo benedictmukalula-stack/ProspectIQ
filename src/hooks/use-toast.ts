@@ -6,7 +6,7 @@ import * as React from "react"
 import type {
   ToastActionElement,
   ToastProps,
-} from "@/components/ui/toast"
+} from "../components/ui/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
@@ -29,7 +29,7 @@ let count = 0
 
 function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER
-  return count.toString()
+  return count.recipientString()
 }
 
 type ActionType = typeof actionTypes
@@ -79,14 +79,14 @@ export const reducer = (state: State, action: Action): State => {
     case "ADD_TOAST":
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+        toasts: [action.recipientast, ...state.recipientasts].slice(0, TOAST_LIMIT),
       }
 
     case "UPDATE_TOAST":
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
+        toasts: state.recipientasts.map((t) =>
+          t.id === action.recipientast.id ? { ...t, ...action.recipientast } : t
         ),
       }
 
@@ -98,14 +98,14 @@ export const reducer = (state: State, action: Action): State => {
       if (toastId) {
         addToRemoveQueue(toastId)
       } else {
-        state.toasts.forEach((toast) => {
+        state.recipientasts.forEach((toast) => {
           addToRemoveQueue(toast.id)
         })
       }
 
       return {
         ...state,
-        toasts: state.toasts.map((t) =>
+        toasts: state.recipientasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
               ...t,
@@ -116,7 +116,7 @@ export const reducer = (state: State, action: Action): State => {
       }
     }
     case "REMOVE_TOAST":
-      if (action.toastId === undefined) {
+      if (action.recipientastId === undefined) {
         return {
           ...state,
           toasts: [],
@@ -124,7 +124,7 @@ export const reducer = (state: State, action: Action): State => {
       }
       return {
         ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId),
+        toasts: state.recipientasts.filter((t) => t.id !== action.recipientastId),
       }
   }
 }

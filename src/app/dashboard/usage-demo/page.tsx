@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { trackUsage, type UsageEventType } from "@/lib/usage/track-usage"
-import { UpgradeRequired } from "@/components/billing/upgrade-required"
+import { trackUsage, type UsageEventType } from "../lib/usage/track-usage"
+import { UpgradeRequired } from "../components/billing/upgrade-required"
 
 const demoUserId = null
 

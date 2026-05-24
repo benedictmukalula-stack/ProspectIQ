@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { canAccessFeature, type FeatureKey } from "@/lib/features/feature-gates"
+import { canAccessFeature, type FeatureKey } from "../lib/features/feature-gates"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -96,7 +96,7 @@ export function generateExecutionPolicy(
     {
       action: "apply_sequence_policy",
       priority: "high" as const,
-      description: `Generate ${preferredLength}-step sequences using ${optimization.tone} tone and ${optimization.ctaStrength} CTA strength.`,
+      description: `Generate ${preferredLength}-step sequences using ${optimization.recipientne} tone and ${optimization.ctaStrength} CTA strength.`,
     },
     {
       action: "apply_queue_policy",
@@ -124,12 +124,12 @@ export function generateExecutionPolicy(
     queuePolicy,
     sequencePolicy: {
       preferredLength,
-      tone: optimization.tone,
+      tone: optimization.recipientne,
       ctaStrength: optimization.ctaStrength,
       cadence: optimization.cadence,
     },
     copyPolicy: {
-      style: optimization.tone,
+      style: optimization.recipientne,
       verticalInstruction: optimization.verticalStrategy,
       requiredElements,
     },

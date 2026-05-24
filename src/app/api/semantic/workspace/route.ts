@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { buildSemanticWorkspaceModel } from "@/lib/semantic/organizational-ontology"
-import { generateKnowledgePriority } from "@/lib/knowledge/semantic-ranking"
-import { predictRevenueSignals } from "@/lib/prediction/revenue-forecast"
+import { buildSemanticWorkspaceModel } from "../lib/semantic/organizational-ontology"
+import { generateKnowledgePriority } from "../lib/knowledge/semantic-ranking"
+import { predictRevenueSignals } from "../lib/prediction/revenue-forecast"
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY")

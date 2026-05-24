@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateStrategicInitiatives } from "@/lib/planning/strategic-planner"
-import { buildStrategicPlanSummary } from "@/lib/cognition/cognitive-runtime"
+import { generateStrategicInitiatives } from "../lib/planning/strategic-planner"
+import { buildStrategicPlanSummary } from "../lib/cognition/cognitive-runtime"
 
 export async function POST(req: NextRequest) {
   try {

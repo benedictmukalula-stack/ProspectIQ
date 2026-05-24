@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateSequenceForLead } from "@/lib/ai/sequence-generator"
+import { generateSequenceForLead } from "../lib/ai/sequence-generator"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         workspace_id: workspaceId,
         name: generated.sequenceName,
         status: "active",
-        description: `AI-generated ${generated.tone} sequence for ${generated.stage} lead.`,
+        description: `AI-generated ${generated.recipientne} sequence for ${generated.stage} lead.`,
       })
       .select("*")
       .single()

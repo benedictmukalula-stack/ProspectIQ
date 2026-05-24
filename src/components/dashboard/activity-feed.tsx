@@ -1,7 +1,7 @@
 import {
   activityFeed,
   type ActivityItem,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 import { Mail, UserPlus, Calendar, CheckSquare, Zap } from "lucide-react";
 
 function getTypeIcon(type: ActivityItem["type"]) {

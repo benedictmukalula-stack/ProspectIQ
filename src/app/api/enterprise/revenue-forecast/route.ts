@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateRevenueForecast } from "@/lib/enterprise/revenue-forecast-engine"
+import { generateRevenueForecast } from "../lib/enterprise/revenue-forecast-engine"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

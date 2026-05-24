@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FeatureGate } from "@/components/features/feature-gate"
+import { FeatureGate } from "../components/features/feature-gate"
 
 const members = [
   {

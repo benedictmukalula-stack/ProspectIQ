@@ -103,7 +103,7 @@ export default function ExecutionPage() {
           {[
             [
               "Actions",
-              optimization.summary?.totalActions || 0,
+              optimization.summary?.recipienttalActions || 0,
             ],
             [
               "Autonomous",

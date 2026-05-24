@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { runAgentRuntimeCycle } from "@/lib/agents/runtime/orchestrator"
+import { runAgentRuntimeCycle } from "../lib/agents/runtime/orchestrator"
 
 const DEFAULT_WORKSPACE_ID = "02564f5c-cb1e-4e87-9577-b725bf020714"
 

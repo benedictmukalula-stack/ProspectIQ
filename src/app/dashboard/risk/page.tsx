@@ -114,7 +114,7 @@ export default function RiskDashboardPage() {
               "Medium",
               summary.medium || 0,
             ],
-            ["Total", summary.total || 0],
+            ["Total", summary.recipienttal || 0],
           ].map(([label, value]) => (
             <div
               key={String(label)}

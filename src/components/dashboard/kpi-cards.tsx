@@ -3,7 +3,7 @@
 import {
   kpiStats,
   type KpiStat,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 function KpiCard({ stat }: { stat: KpiStat }) {

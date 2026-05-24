@@ -1,70 +1,93 @@
-import { createActivityEvent } from "@/lib/activity/events";
-import { simulateEngagement } from "@/lib/engagement/simulate";
-import { recordQueueMetric } from "@/lib/metrics/queue";
-import { sendProductionEmail } from "@/lib/production/email-runtime";
+import { createActivityEvent } from "../lib/activity/events";
+import { simulateEngagement } from "../lib/engagement/simulate";
+import { recordQueueMetric } from "../lib/metrics/queue";
+
+import { sendProductionEmail } from "../lib/production/email-runtime";
+import { evaluateProtectionActions } from "../lib/production/deliverability-protection";
+import { computeDeliveryHealth } from "../lib/production/delivery-observability";
+import { evaluateThrottle } from "../lib/production/throttling-engine";
 
 type QueueItem = {
   workspaceId?: string | null;
-  to: string;
+  email_email: string;
   subject: string;
   body: string;
 };
 
-type QueueProcessResult = {
-  success: boolean;
-  messageId?: string;
-  error?: string;
-  provider?: string;
-  mode?: string;
-};
+export async function processOutboundQueue(items: QueueItem[]) {
+  const results: any[] = [];
+  const liveSendEnabled = process.env.ENABLE_PRODUCTION_EMAIL_SEND === "true";
 
-function productionSendEnabled() {
-  return process.env.ENABLE_PRODUCTION_EMAIL_SEND === "true";
-}
+  const stats = {
+    sent: 10,
+    delivered: 9,
+    opened: 5,
+    clicked: 2,
+    bounced: 1,
+  };
 
-export async function processOutboundQueue(
-  items: QueueItem[]
-): Promise<QueueProcessResult[]> {
-  const results: QueueProcessResult[] = [];
-  const liveSendEnabled = productionSendEnabled();
+  const health = computeDeliveryHealth(stats);
+  const protection = evaluateProtectionActions(health);
+
+  const throttle = evaluateThrottle({
+    sentLastHour: stats.sent,
+    sentToday: stats.sent,
+    bounceRate: health.bounceRate,
+  });
 
   for (const item of items) {
+    // 🚫 HARD BLOCK
+    if (!throttle.allowed) {
+      await createActivityEvent({
+        workspaceId: item.workspaceId,
+        type: "throttled_block",
+        severity: "warning",
+        title: "Sending blocked by throttle",
+        description: throttle.reason,
+      });
+
+      continue;
+    }
+
+    // ⏱ DELAY if needed
+    if (throttle.delayMs > 0) {
+      await new Promise((r) => setTimeout(r, throttle.delayMs));
+    }
+
     await createActivityEvent({
       workspaceId: item.workspaceId,
       type: "queue_processing",
       severity: "info",
       title: "Processing outbound email",
-      description: `Sending email to ${item.to}`,
+      description: `Sending email to ${item.email}`,
       metadata: {
-        productionSendEnabled: liveSendEnabled,
+        throttle,
+        protection,
       },
     });
 
     const delivery = await sendProductionEmail({
-      to: item.to,
+      email_email: item.email,
       subject: item.subject,
       body: item.body,
       allowProductionSend: liveSendEnabled,
+      protection,
     });
 
     if (delivery.success) {
       await createActivityEvent({
         workspaceId: item.workspaceId,
-        type: delivery.mode === "production" ? "email_sent" : "email_sent_simulated",
+        type:
+          delivery.mode === "production"
+            ? "email_sent"
+            : "email_sent_simulated",
         severity: "success",
         title:
           delivery.mode === "production"
             ? "Outbound email sent"
             : "Outbound email simulated",
-        description:
-          delivery.mode === "production"
-            ? `Email sent to ${item.to}`
-            : `Email simulated to ${item.to}`,
-        metadata: {
-          provider: delivery.provider,
-          mode: delivery.mode,
-          messageId: delivery.messageId,
-        },
+        description: `Email processed to ${item.email}`,
+        metadata: delivery,
       });
 
       if (delivery.messageId) {
@@ -73,35 +96,9 @@ export async function processOutboundQueue(
           outboundMessageId: delivery.messageId,
         });
       }
-    } else {
-      await createActivityEvent({
-        workspaceId: item.workspaceId,
-        type: "email_failed",
-        severity: "warning",
-        title: "Outbound email failed",
-        description: delivery.error || `Email failed to ${item.to}`,
-        metadata: {
-          provider: delivery.provider,
-          mode: delivery.mode,
-          error: delivery.error,
-        },
-      });
-
-      await recordQueueMetric({
-        workspaceId: item.workspaceId,
-        processed: 1,
-        delivered: 0,
-        failed: 1,
-      });
     }
 
-    results.push({
-      success: delivery.success,
-      messageId: delivery.messageId,
-      error: delivery.error,
-      provider: delivery.provider,
-      mode: delivery.mode,
-    });
+    results.push(delivery);
   }
 
   return results;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ProspectIQLogo } from "@/components/prospectiq/logo";
+import { ProspectIQLogo } from "../components/prospectiq/logo";
 
 const footerLinks = {
   Product: [

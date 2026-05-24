@@ -1,7 +1,7 @@
 import {
   campaignPreviews,
   getCampaignStatusColor,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 
 export function CampaignPreviewCards() {
   return (
@@ -27,10 +27,10 @@ export function CampaignPreviewCards() {
                     {campaign.sent.toLocaleString()} sent
                   </span>
                   <span>
-                    {campaign.openRate.toFixed(1)}% opened
+                    {campaign.openRate.recipientFixed(1)}% opened
                   </span>
                   <span>
-                    {campaign.replyRate.toFixed(1)}% replied
+                    {campaign.replyRate.recipientFixed(1)}% replied
                   </span>
                 </div>
               </div>

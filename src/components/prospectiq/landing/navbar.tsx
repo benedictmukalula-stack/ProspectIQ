@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ProspectIQLogo } from "@/components/prospectiq/logo";
+import { ProspectIQLogo } from "../components/prospectiq/logo";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [

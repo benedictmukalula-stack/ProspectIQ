@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { meterWorkspaceUsage } from "@/lib/commercial/usage-metering-engine"
+import { meterWorkspaceUsage } from "../lib/commercial/usage-metering-engine"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

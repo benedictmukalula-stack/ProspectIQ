@@ -5,7 +5,7 @@ import {
   createBrowserSupabaseClient,
   isDemoMode,
   supabaseAuth,
-} from "@/lib/supabase/client";
+} from "../lib/supabase/client";
 
 type Lead = {
   id: string;
@@ -338,7 +338,7 @@ export default function EmailPage() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: email.lead_email,
+        recipient_email: email.lead_email,
         from: formattedFrom,
         subject: email.subject,
         message: email.message,

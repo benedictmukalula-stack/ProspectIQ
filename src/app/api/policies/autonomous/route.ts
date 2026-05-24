@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateStrategicMemory } from "@/lib/memory/strategic-memory"
-import { generateSequenceLearningRules } from "@/lib/learning/sequence-learning-engine"
-import { generateAutonomousOptimizationPlan } from "@/lib/optimization/autonomous-optimizer"
-import { generateExecutionPolicy } from "@/lib/orchestration/autonomous-execution-orchestrator"
+import { generateStrategicMemory } from "../lib/memory/strategic-memory"
+import { generateSequenceLearningRules } from "../lib/learning/sequence-learning-engine"
+import { generateAutonomousOptimizationPlan } from "../lib/optimization/autonomous-optimizer"
+import { generateExecutionPolicy } from "../lib/orchestration/autonomous-execution-orchestrator"
 import {
   createWorkspaceAutonomousPolicy,
   summarizeWorkspacePolicy,
-} from "@/lib/policies/persistent-policy-engine"
+} from "../lib/policies/persistent-policy-engine"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

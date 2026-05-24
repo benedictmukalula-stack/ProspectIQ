@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { classifyReply } from "@/lib/ai/reply-intelligence"
-import { generateFollowUpDraft } from "@/lib/replies/follow-up"
-import { calculateLeadScore } from "@/lib/crm/score-contact"
+import { classifyReply } from "../lib/ai/reply-intelligence"
+import { generateFollowUpDraft } from "../lib/replies/follow-up"
+import { calculateLeadScore } from "../lib/crm/score-contact"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

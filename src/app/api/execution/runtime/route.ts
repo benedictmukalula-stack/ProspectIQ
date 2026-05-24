@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateAutonomousOptimizations } from "@/lib/optimization/autonomous-optimizer"
-import { executeAutonomousCorrections } from "@/lib/execution/runtime-correction"
+import { generateAutonomousOptimizations } from "../lib/optimization/autonomous-optimizer"
+import { executeAutonomousCorrections } from "../lib/execution/runtime-correction"
 
 export async function POST(req: NextRequest) {
   try {

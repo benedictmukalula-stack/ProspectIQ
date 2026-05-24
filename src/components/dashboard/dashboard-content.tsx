@@ -2,16 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import { LogIn, AlertCircle } from "lucide-react";
-import { isDemoMode } from "@/lib/supabase/client";
-import { KpiCards } from "@/components/dashboard/kpi-cards";
-import { LeadGrowthChart } from "@/components/dashboard/lead-growth-chart";
-import { TopProspectsTable } from "@/components/dashboard/top-prospects-table";
-import { ActivityFeedWidget } from "@/components/dashboard/activity-feed";
-import { CampaignPreviewCards } from "@/components/dashboard/campaign-preview";
-import { TasksPreview } from "@/components/dashboard/tasks-preview";
-import { AiInsightsPreview } from "@/components/dashboard/ai-insights";
+import { isDemoMode } from "../lib/supabase/client";
+import { KpiCards } from "../components/dashboard/kpi-cards";
+import { LeadGrowthChart } from "../components/dashboard/lead-growth-chart";
+import { TopProspectsTable } from "../components/dashboard/top-prospects-table";
+import { ActivityFeedWidget } from "../components/dashboard/activity-feed";
+import { CampaignPreviewCards } from "../components/dashboard/campaign-preview";
+import { TasksPreview } from "../components/dashboard/tasks-preview";
+import { AiInsightsPreview } from "../components/dashboard/ai-insights";
 
 /**
  * Client-side dashboard content wrapper.
@@ -45,7 +45,7 @@ export function DashboardContent() {
   async function checkSupabaseSession() {
     try {
       // Dynamic import to avoid bundling Supabase in demo mode
-      const { supabaseAuth } = await import("@/lib/supabase/client");
+      const { supabaseAuth } = await import("../lib/supabase/client");
       const result = await supabaseAuth.getSession();
       setHasSession(!!result.data?.session);
     } catch {

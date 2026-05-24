@@ -1,4 +1,4 @@
-import type { WorkspaceAutonomousPolicy } from "@/lib/policies/persistent-policy-engine"
+import type { WorkspaceAutonomousPolicy } from "../lib/policies/persistent-policy-engine"
 
 export type RuntimeEnforcementState = {
   workspaceId: string
@@ -51,7 +51,7 @@ export function enforceRuntimePolicy(
     sequence: {
       preferredLength: policy.sequencePolicy.preferredLength,
       cadence: policy.sequencePolicy.cadence,
-      tone: policy.sequencePolicy.tone,
+      tone: policy.sequencePolicy.recipientne,
       ctaStrength: policy.sequencePolicy.ctaStrength,
     },
     copy: {
@@ -73,7 +73,7 @@ export function enforceRuntimePolicy(
       {
         action: "sequence_governance",
         enabled: workspacePolicy.governance.autoApplySequencePolicy,
-        description: `Generate ${policy.sequencePolicy.preferredLength}-step sequences using ${policy.sequencePolicy.tone} tone.`,
+        description: `Generate ${policy.sequencePolicy.preferredLength}-step sequences using ${policy.sequencePolicy.recipientne} tone.`,
       },
       {
         action: "copy_governance",

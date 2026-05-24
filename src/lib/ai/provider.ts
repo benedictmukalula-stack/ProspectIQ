@@ -95,7 +95,7 @@ export async function runAI({
     usage: {
       input_tokens: data.usage?.prompt_tokens || 0,
       output_tokens: data.usage?.completion_tokens || 0,
-      total_tokens: data.usage?.total_tokens || 0,
+      total_tokens: data.usage?.recipienttal_tokens || 0,
     },
   }
 }

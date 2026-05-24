@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateStrategicMemory } from "@/lib/memory/strategic-memory"
-import { generateSequenceLearningRules } from "@/lib/learning/sequence-learning-engine"
+import { generateStrategicMemory } from "../lib/memory/strategic-memory"
+import { generateSequenceLearningRules } from "../lib/learning/sequence-learning-engine"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

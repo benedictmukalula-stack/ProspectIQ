@@ -1,7 +1,7 @@
 import {
   InfrastructureRisk,
   summarizeInfrastructureRisks,
-} from "@/lib/resilience/resilience-engine"
+} from "../lib/resilience/resilience-engine"
 
 export function analyzeInfrastructureHealth({
   intelligence,

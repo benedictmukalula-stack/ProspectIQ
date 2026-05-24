@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { executeAutonomousWorkflows } from "@/lib/agents/workflows/workflow-executor"
+import { executeAutonomousWorkflows } from "../lib/agents/workflows/workflow-executor"
 
 export async function POST(req: NextRequest) {
   try {

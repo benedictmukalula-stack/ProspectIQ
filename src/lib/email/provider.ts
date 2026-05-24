@@ -1,7 +1,7 @@
-import { getEmailProvider } from "@/lib/email";
+import { getEmailProvider } from "../lib/email";
 
 export type SendEmailPayload = {
-  to: string | string[];
+  recipient_email: string | string[];
   subject: string;
   html?: string;
   body?: string;

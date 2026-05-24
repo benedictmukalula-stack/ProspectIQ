@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { analyzeEngagementSignals } from "@/lib/agents/engagement/engagement-agent"
+import { analyzeEngagementSignals } from "../lib/agents/engagement/engagement-agent"
 
 export async function POST(req: NextRequest) {
   try {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { runMultiAgentRevenueSystem } from "@/lib/agents/revenue/multi-agent-revenue-system"
+import { runMultiAgentRevenueSystem } from "../lib/agents/revenue/multi-agent-revenue-system"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

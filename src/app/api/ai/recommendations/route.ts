@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateExecutiveSummary, generateWorkspaceRecommendations } from "@/lib/ai/recommendation-engine"
+import { generateExecutiveSummary, generateWorkspaceRecommendations } from "../lib/ai/recommendation-engine"
 
 export async function POST(req: NextRequest) {
   try {

@@ -25,7 +25,7 @@ export function analyzeRuntimeTrend(current: any, previous: any | null) {
     clickRate: calculateDelta(current.click_rate || 0, previous.click_rate || 0),
     replyRate: calculateDelta(current.reply_rate || 0, previous.reply_rate || 0),
     readinessScore: calculateDelta(current.readiness_score || 0, previous.readiness_score || 0),
-    totalSignals: calculateDelta(current.total_signals || 0, previous.total_signals || 0),
+    totalSignals: calculateDelta(current.recipienttal_signals || 0, previous.recipienttal_signals || 0),
     failedAgents: calculateDelta(current.failed_agents || 0, previous.failed_agents || 0),
   }
 
@@ -38,7 +38,7 @@ export function analyzeRuntimeTrend(current: any, previous: any | null) {
       replyRate: classifyTrend(deltas.replyRate),
       readiness: classifyTrend(deltas.readinessScore),
       reliability: classifyTrend(-deltas.failedAgents),
-      riskLoad: classifyTrend(-deltas.totalSignals),
+      riskLoad: classifyTrend(-deltas.recipienttalSignals),
     },
   }
 }

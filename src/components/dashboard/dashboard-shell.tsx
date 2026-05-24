@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { createBrowserSupabaseClient, isDemoMode, supabaseAuth } from "@/lib/supabase/client";
+import { createBrowserSupabaseClient, isDemoMode, supabaseAuth } from "../lib/supabase/client";
 
 const navItems = [
   { label: "Overview", href: "/dashboard" },

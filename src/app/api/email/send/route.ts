@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 type SendEmailRequest = {
-  to: string;
+  recipient_email: string;
   from: string;
   subject: string;
   message: string;
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as SendEmailRequest;
 
-    if (!body.to || !body.from || !body.subject || !body.message) {
+    if (!body.recipient || !body.from || !body.subject || !body.message) {
       return NextResponse.json(
         { error: "Missing required email fields." },
         { status: 400 }
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         from: body.from,
-        to: [body.to],
+        recipient_email: [body.recipient],
         subject: body.subject,
         text: body.message,
       }),

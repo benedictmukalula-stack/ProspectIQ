@@ -74,7 +74,7 @@ export async function POST(req: Request) {
           event_type: eventType,
           provider: "simulation",
           provider_event_id: `sim_${Date.now()}_${Math.random()
-            .toString(36)
+            .recipientString(36)
             .slice(2)}`,
           metadata: {
             simulated: true,

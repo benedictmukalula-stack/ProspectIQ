@@ -155,7 +155,7 @@ export default function ExecutiveDashboardPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-5">
           {[
             ["Executive Score", `${executiveScore}%`],
-            ["Runtime Signals", runtime?.totalSignals || 0],
+            ["Runtime Signals", runtime?.recipienttalSignals || 0],
             ["Pending Approvals", pendingApprovals],
             ["Prediction", prediction?.forecastLabel || "loading"],
             ["Tenant Avg", `${benchmarkSummary?.avgReadiness || 0}%`],
@@ -209,7 +209,7 @@ export default function ExecutiveDashboardPage() {
             {[
               ["Executed Agents", runtime?.results?.length || 0],
               ["Failed Agents", runtime?.failedAgents || 0],
-              ["Runtime Signals", runtime?.totalSignals || 0],
+              ["Runtime Signals", runtime?.recipienttalSignals || 0],
               ["Snapshots", snapshots.length],
             ].map(([label, value]) => (
               <div key={String(label)} className="flex justify-between border-b pb-3 last:border-0">
@@ -290,7 +290,7 @@ export default function ExecutiveDashboardPage() {
         {[
           ["Contacts", intelligence?.summary?.contacts || 0, "/dashboard/leads"],
           ["AI Workflows", intelligence?.summary?.aiWorkflows || 0, "/dashboard/ai-workflows"],
-          ["Benchmarks", benchmarkSummary?.totalWorkspaces || 0, "/dashboard/benchmarks"],
+          ["Benchmarks", benchmarkSummary?.recipienttalWorkspaces || 0, "/dashboard/benchmarks"],
           ["Execution", "Open", "/dashboard/execution"],
         ].map(([label, value, href]) => (
           <a key={String(label)} href={String(href)} className="rounded-2xl border p-6 hover:bg-muted">

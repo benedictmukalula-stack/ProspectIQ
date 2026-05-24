@@ -89,7 +89,7 @@ export function generateAutonomousStrategicDecisions({
   }
 
   const directToneSignals = directives.filter(
-    (directive) => directive.tuning.tone === "direct"
+    (directive) => directive.tuning.recipientne === "direct"
   ).length
 
   if (directToneSignals >= 1) {

@@ -1,4 +1,4 @@
-import type { RuntimeEnforcementState } from "@/lib/runtime/runtime-policy-enforcer"
+import type { RuntimeEnforcementState } from "../lib/runtime/runtime-policy-enforcer"
 
 type ExecutorResult = {
   action: string

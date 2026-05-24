@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import {
   calculatePlatformMaturity,
   buildCapabilityMap,
-} from "@/lib/showcase/platform-maturity"
+} from "../lib/showcase/platform-maturity"
 
 export async function GET() {
   const modules = [

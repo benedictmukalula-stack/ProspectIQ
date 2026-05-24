@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateRiskAssessment } from "@/lib/risk/risk-engine"
+import { generateRiskAssessment } from "../lib/risk/risk-engine"
 
 export async function POST(req: NextRequest) {
   try {

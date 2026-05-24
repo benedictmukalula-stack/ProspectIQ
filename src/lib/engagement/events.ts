@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { createActivityEvent } from "@/lib/activity/events";
+import { createActivityEvent } from "../lib/activity/events";
 
 export type EngagementEventType =
   | "delivered"

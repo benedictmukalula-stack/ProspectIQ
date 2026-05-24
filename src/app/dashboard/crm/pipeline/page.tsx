@@ -103,7 +103,7 @@ export default function PipelinePage() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
-            ["Pipeline Value", `$${summary.totalValue.toLocaleString()}`],
+            ["Pipeline Value", `$${summary.recipienttalValue.toLocaleString()}`],
             ["Weighted Forecast", `$${Math.round(summary.weightedValue).toLocaleString()}`],
             ["Won Revenue", `$${summary.wonValue.toLocaleString()}`],
             ["Active Deals", summary.activeDeals],

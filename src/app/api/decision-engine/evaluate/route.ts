@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import {
   evaluateAutonomousDecisions,
   summarizeDecisionEvaluations,
-} from "@/lib/decision-engine/decision-engine"
+} from "../lib/decision-engine/decision-engine"
 
 export async function POST(req: NextRequest) {
   try {

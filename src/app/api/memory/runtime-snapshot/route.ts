@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { analyzeRuntimeTrend } from "@/lib/memory/trend-analysis"
+import { analyzeRuntimeTrend } from "../lib/memory/trend-analysis"
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY")
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       click_rate: performance.clickRate || 0,
       reply_rate: performance.replyRate || 0,
       readiness_score: readinessScore || 0,
-      total_signals: runtimeResult?.totalSignals || 0,
+      total_signals: runtimeResult?.recipienttalSignals || 0,
       failed_agents: runtimeResult?.failedAgents || 0,
     }
 

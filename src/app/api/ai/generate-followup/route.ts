@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateFollowupEmail } from "@/lib/ai/copilot-email-generator"
+import { generateFollowupEmail } from "../lib/ai/copilot-email-generator"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

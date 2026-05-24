@@ -1,4 +1,4 @@
-import type { ExecutionPolicy } from "@/lib/orchestration/autonomous-execution-orchestrator"
+import type { ExecutionPolicy } from "../lib/orchestration/autonomous-execution-orchestrator"
 
 export type WorkspaceAutonomousPolicy = {
   workspaceId: string
@@ -65,7 +65,7 @@ export function summarizeWorkspacePolicy(policy: WorkspaceAutonomousPolicy) {
     maxDailySends: policy.policy.queuePolicy.maxDailySends,
     minDelayHours: policy.policy.queuePolicy.minDelayHours,
     preferredSequenceLength: policy.policy.sequencePolicy.preferredLength,
-    tone: policy.policy.sequencePolicy.tone,
+    tone: policy.policy.sequencePolicy.recipientne,
     ctaStrength: policy.policy.sequencePolicy.ctaStrength,
     deliveryRiskMode: policy.policy.deliveryPolicy.riskMode,
     throttleEnabled: policy.policy.deliveryPolicy.throttleEnabled,

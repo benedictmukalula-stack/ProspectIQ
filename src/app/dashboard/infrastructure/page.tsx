@@ -79,7 +79,7 @@ export default function InfrastructurePage() {
         <div className="mt-6 grid gap-4 md:grid-cols-5">
           {[
             ["Resilience", `${summary.resilienceScore || 0}%`],
-            ["Total Risks", summary.total || 0],
+            ["Total Risks", summary.recipienttal || 0],
             ["Critical", summary.critical || 0],
             ["High", summary.high || 0],
             ["Self-Healing", summary.selfHealingAvailable || 0],

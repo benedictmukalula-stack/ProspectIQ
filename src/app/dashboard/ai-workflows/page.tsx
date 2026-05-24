@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { FeatureGate } from "@/components/features/feature-gate"
+import { FeatureGate } from "../components/features/feature-gate"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

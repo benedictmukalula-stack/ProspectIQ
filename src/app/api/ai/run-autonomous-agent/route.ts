@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { runAutonomousRevenueAgent } from "@/lib/ai/autonomous-revenue-agent"
+import { runAutonomousRevenueAgent } from "../lib/ai/autonomous-revenue-agent"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

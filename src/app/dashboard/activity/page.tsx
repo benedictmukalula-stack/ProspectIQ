@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { useWorkspaceEventsRealtime } from "@/lib/realtime/use-workspace-events"
+import { useWorkspaceEventsRealtime } from "../lib/realtime/use-workspace-events"
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -161,7 +161,7 @@ export default function ActivityPage() {
                   </p>
 
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {new Date(event.created_at).toLocaleString()}
+                    {formatDate(event.created_at)}
                   </p>
                 </div>
 

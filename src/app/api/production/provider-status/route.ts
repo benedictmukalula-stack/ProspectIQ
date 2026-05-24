@@ -3,7 +3,7 @@ import { NextResponse } from "next/server"
 import {
   getProviderStatus,
   selectEmailProvider,
-} from "@/lib/production/provider-orchestration-engine"
+} from "../lib/production/provider-orchestration-engine"
 
 export async function GET() {
   const providers = getProviderStatus()

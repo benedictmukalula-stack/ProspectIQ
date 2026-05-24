@@ -1,6 +1,6 @@
 "use client";
 
-import { isDemoMode } from "@/lib/supabase/client";
+import { isDemoMode } from "../lib/supabase/client";
 import { AlertTriangle } from "lucide-react";
 
 export function DemoBanner() {

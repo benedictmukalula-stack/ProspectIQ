@@ -1,6 +1,6 @@
 "use client";
 
-import { leadGrowthData } from "@/lib/mock-data";
+import { leadGrowthData } from "../lib/mock-data";
 
 export function LeadGrowthChart() {
   const maxLeads = Math.max(...leadGrowthData.map((d) => d.leads));

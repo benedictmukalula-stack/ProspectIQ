@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateSimulationScenarios } from "@/lib/scenarios/scenario-engine"
-import { buildSimulationSummary } from "@/lib/simulation/simulation-runtime"
+import { generateSimulationScenarios } from "../lib/scenarios/scenario-engine"
+import { buildSimulationSummary } from "../lib/simulation/simulation-runtime"
 
 export async function POST(req: NextRequest) {
   try {

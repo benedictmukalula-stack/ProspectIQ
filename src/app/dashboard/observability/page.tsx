@@ -63,7 +63,7 @@ export default function ObservabilityPage() {
   const runtimeStats = useMemo(() => {
     const totalCycles = snapshots.length
     const totalSignals = snapshots.reduce(
-      (sum, item) => sum + Number(item.total_signals || 0),
+      (sum, item) => sum + Number(item.recipienttal_signals || 0),
       0
     )
     const totalFailures = snapshots.reduce(
@@ -107,9 +107,9 @@ export default function ObservabilityPage() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-4">
           {[
-            ["Runtime Cycles", runtimeStats.totalCycles],
-            ["Total Signals", runtimeStats.totalSignals],
-            ["Agent Failures", runtimeStats.totalFailures],
+            ["Runtime Cycles", runtimeStats.recipienttalCycles],
+            ["Total Signals", runtimeStats.recipienttalSignals],
+            ["Agent Failures", runtimeStats.recipienttalFailures],
             ["Avg Readiness", `${runtimeStats.avgReadiness}%`],
           ].map(([label, value]) => (
             <div
@@ -150,7 +150,7 @@ export default function ObservabilityPage() {
             {[
               ["Readiness Score", `${latest?.readiness_score || 0}%`],
               ["Readiness Delta", readinessDelta > 0 ? `+${readinessDelta}` : readinessDelta],
-              ["Signals", latest?.total_signals || 0],
+              ["Signals", latest?.recipienttal_signals || 0],
               ["Failed Agents", latest?.failed_agents || 0],
             ].map(([label, value]) => (
               <div key={String(label)} className="flex justify-between border-b pb-3 last:border-0">
@@ -190,7 +190,7 @@ export default function ObservabilityPage() {
               [
                 "Last Cycle",
                 latest?.created_at
-                  ? new Date(latest.created_at).toLocaleString()
+                  ? formatDate(event.created_at)
                   : "No cycle yet",
               ],
             ].map(([label, value]) => (
@@ -219,7 +219,7 @@ export default function ObservabilityPage() {
                       {snapshot.source}
                     </span>
                     <span className="rounded-full border px-2 py-0.5 text-xs">
-                      {snapshot.total_signals} signals
+                      {snapshot.recipienttal_signals} signals
                     </span>
                     <span className="rounded-full border px-2 py-0.5 text-xs">
                       {snapshot.failed_agents} failures
@@ -238,7 +238,7 @@ export default function ObservabilityPage() {
                   </p>
 
                   <p className="mt-2 text-xs text-muted-foreground">
-                    {new Date(snapshot.created_at).toLocaleString()}
+                    {formatDate(event.created_at)}
                   </p>
                 </div>
 

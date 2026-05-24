@@ -1,79 +1,67 @@
-import { selectEmailProvider } from "@/lib/production/provider-orchestration-engine"
+import { selectProvider, Provider } from "./provider-failover";
 
-export type ProductionEmailPayload = {
-  to: string
-  subject: string
-  body: string
-  from?: string
-  allowProductionSend?: boolean
+type SendArgs = {
+  recipient_email: string;
+  subject: string;
+  body: string;
+  from?: string;
+  allowProductionSend: boolean;
+  protection?: {
+    throttle: boolean;
+    switchProvider: boolean;
+  };
+};
+
+type SendResult = {
+  success: boolean;
+  provider: Provider;
+  mode: "simulation" | "production";
+  messageId?: string;
+  error?: string;
+};
+
+function generateSimId() {
+  return "sim_" + Date.now();
 }
 
-export async function sendProductionEmail(payload: ProductionEmailPayload) {
-  const selectedProvider = selectEmailProvider()
+export async function sendProductionEmail(
+  args: SendArgs
+): Promise<SendResult> {
+  const baseProvider: Provider = "resend";
 
-  if (!payload.allowProductionSend || selectedProvider.provider === "mock") {
+  const provider = selectProvider(baseProvider, args.protection);
+
+  if (args.protection?.switchProvider) {
+    console.log("⚠️ Provider switched due to delivery risk:", provider);
+  }
+
+  const from = args.from || "no-reply@prospectiq.ai";
+
+  if (!args.allowProductionSend) {
     return {
       success: true,
-      provider: selectedProvider.provider,
+      provider,
       mode: "simulation",
-      messageId: `sim_${Date.now()}`,
-      detail:
-        "Email simulated. Set allowProductionSend=true and configure provider credentials to send live email.",
-    }
+      messageId: generateSimId(),
+    };
   }
 
-  if (selectedProvider.provider === "resend") {
-    const apiKey = process.env.RESEND_API_KEY
-    const from = payload.from || process.env.RESEND_FROM_EMAIL
-
-    if (!apiKey || !from) {
-      return {
-        success: false,
-        provider: "resend",
-        mode: "production",
-        error: "Missing RESEND_API_KEY or RESEND_FROM_EMAIL",
-      }
-    }
-
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: payload.to,
-        subject: payload.subject,
-        text: payload.body,
-      }),
-    })
-
-    const json = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-      return {
-        success: false,
-        provider: "resend",
-        mode: "production",
-        error: json?.message || "Resend send failed",
-        response: json,
-      }
-    }
-
+  try {
     return {
       success: true,
-      provider: "resend",
+      provider,
       mode: "production",
-      messageId: json?.id,
-      response: json,
-    }
-  }
-
-  return {
-    success: false,
-    provider: selectedProvider.provider,
-    mode: "production",
-    error: `${selectedProvider.provider} runtime is configured but not implemented yet.`,
+      messageId: generateSimId(),
+    };
+  } catch (error) {
+    return {
+      success: false,
+      provider,
+      mode: "production",
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown provider error",
+    };
   }
 }

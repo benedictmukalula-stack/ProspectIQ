@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { analyzePipelineRisk } from "@/lib/agents/pipeline/pipeline-agent"
+import { analyzePipelineRisk } from "../lib/agents/pipeline/pipeline-agent"
 
 export async function POST(req: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
-import { PLAN_LIMITS, type Plan, type UsageEventType } from "@/lib/billing/entitlements"
+import { PLAN_LIMITS, type Plan, type UsageEventType } from "../lib/billing/entitlements"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

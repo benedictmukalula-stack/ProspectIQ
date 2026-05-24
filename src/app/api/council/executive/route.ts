@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generateRevenueForecast } from "@/lib/enterprise/revenue-forecast-engine"
-import { generatePlatformIntelligenceMesh } from "@/lib/global-intelligence/platform-intelligence-mesh"
-import { generateSelfImprovementDirectives } from "@/lib/self-improvement/self-improving-optimizer"
-import { generateAutonomousStrategicDecisions } from "@/lib/strategy/autonomous-strategy-engine"
-import { generateExecutiveBriefing } from "@/lib/boardroom/executive-briefing-engine"
-import { generateExecutiveSimulations } from "@/lib/simulation/executive-simulation-engine"
-import { generateExecutiveGovernance } from "@/lib/governance/executive-governance-engine"
-import { meterWorkspaceUsage } from "@/lib/commercial/usage-metering-engine"
-import { buildExecutiveCouncilOpinions } from "@/lib/council/executive-council"
-import { calculateCouncilConsensus } from "@/lib/coordination/consensus-engine"
+import { generateRevenueForecast } from "../lib/enterprise/revenue-forecast-engine"
+import { generatePlatformIntelligenceMesh } from "../lib/global-intelligence/platform-intelligence-mesh"
+import { generateSelfImprovementDirectives } from "../lib/self-improvement/self-improving-optimizer"
+import { generateAutonomousStrategicDecisions } from "../lib/strategy/autonomous-strategy-engine"
+import { generateExecutiveBriefing } from "../lib/boardroom/executive-briefing-engine"
+import { generateExecutiveSimulations } from "../lib/simulation/executive-simulation-engine"
+import { generateExecutiveGovernance } from "../lib/governance/executive-governance-engine"
+import { meterWorkspaceUsage } from "../lib/commercial/usage-metering-engine"
+import { buildExecutiveCouncilOpinions } from "../lib/council/executive-council"
+import { calculateCouncilConsensus } from "../lib/coordination/consensus-engine"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

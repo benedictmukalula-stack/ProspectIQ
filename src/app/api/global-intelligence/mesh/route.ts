@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 
-import { generatePlatformIntelligenceMesh } from "@/lib/global-intelligence/platform-intelligence-mesh"
+import { generatePlatformIntelligenceMesh } from "../lib/global-intelligence/platform-intelligence-mesh"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -2,7 +2,7 @@ import {
   tasks,
   getPriorityColor,
   type TaskItem,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 import { Check } from "lucide-react";
 
 export function TasksPreview() {

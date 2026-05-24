@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { predictRevenueSignals } from "@/lib/prediction/revenue-forecast"
+import { predictRevenueSignals } from "../lib/prediction/revenue-forecast"
 
 export async function POST(req: NextRequest) {
   try {

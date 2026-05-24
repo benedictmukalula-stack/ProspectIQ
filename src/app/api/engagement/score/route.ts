@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js"
 import {
   calculateEngagementScore,
   classifyLeadTemperature,
-} from "@/lib/engagement/scoring"
+} from "../lib/engagement/scoring"
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,

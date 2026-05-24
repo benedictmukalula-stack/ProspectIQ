@@ -2,7 +2,7 @@ import {
   topProspects,
   getStatusColor,
   type Lead,
-} from "@/lib/mock-data";
+} from "../lib/mock-data";
 
 export function TopProspectsTable() {
   return (
