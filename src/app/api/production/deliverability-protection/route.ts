@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { computeDeliveryHealth } from "../lib/production/delivery-observability"
-import { evaluateProtectionActions } from "../lib/production/deliverability-protection"
+import { computeDeliveryHealth } from "../production/delivery-observability"
+import { evaluateProtectionActions } from "../production/deliverability-protection"
 
 export async function GET() {
   try {

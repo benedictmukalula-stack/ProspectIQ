@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { computeDeliveryHealth } from "../lib/production/delivery-observability";
+import { computeDeliveryHealth } from "../production/delivery-observability";
 
 export async function GET() {
   // Placeholder until DB aggregation is wired

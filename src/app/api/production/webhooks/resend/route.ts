@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createActivityEvent } from "../lib/activity/events";
+import { createActivityEvent } from "../activity/events";
 
 type ResendWebhookEvent = {
   type: string;

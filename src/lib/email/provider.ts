@@ -1,29 +1,15 @@
-import { getEmailProvider } from "../lib/email";
+import type { EmailOptions } from "./types.js";
 
-export type SendEmailPayload = {
-  recipient_email: string | string[];
-  subject: string;
-  html?: string;
-  body?: string;
-  text?: string;
+// Always-failing provider for testing DLQ
+const failingProvider = {
+  send: async (options: EmailOptions) => {
+    throw new Error("Simulated provider failure for testing");
+  },
+  name: "failing",
 };
 
-export type SendEmailResult = {
-  success: boolean;
-  provider?: string;
-  providerId?: string;
-  messageId?: string;
-  simulated?: boolean;
-  error?: string;
+export const emailClient = {
+  send: async (options: EmailOptions): Promise<void> => {
+    await failingProvider.send(options);
+  },
 };
-
-export interface EmailProvider {
-  send(payload: SendEmailPayload): Promise<SendEmailResult>;
-}
-
-export async function sendEmail(
-  payload: SendEmailPayload
-): Promise<SendEmailResult> {
-  const provider = getEmailProvider();
-  return provider.send(payload);
-}

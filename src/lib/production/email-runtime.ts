@@ -1,4 +1,5 @@
-import { selectProvider, Provider } from "./provider-failover";
+import type { Provider } from "./provider-failover";
+import { selectProvider } from "./provider-failover";
 
 type SendArgs = {
   recipient_email: string;

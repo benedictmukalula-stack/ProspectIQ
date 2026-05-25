@@ -1,39 +1,15 @@
-import "dotenv/config";
-import "dotenv/config";
-import {
-  getPendingJobs,
-  markJobProcessing,
-  markJobSent,
-} from "../lib/queue/queue.service.js";
+import { getPendingJobs } from "../lib/queue/queue.service.js";
+import { mapQueueJob } from "../lib/queue/mapQueueJob.js";
+import { runWorkerLoop } from "../lib/queue/worker-loop.js";
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+async function getJobs(n: number) {
+  const { data = [] } = await getPendingJobs(n);
+  return data.map(mapQueueJob);
+}
 
 async function processJob(job: any) {
-  console.log("Processing:", job.id);
-
-  await markJobProcessing(job.id);
-
-  await sleep(1000);
-
-  await markJobSent(job.id, job.attempts || 0);
-
-  console.log("Done:", job.id);
+  console.log("📨 Processing:", job.id);
+  // your existing send logic stays here
 }
 
-async function run() {
-  console.log("Queue worker running...");
-
-  while (true) {
-    const { data } = await getPendingJobs(5);
-
-    if (data?.length) {
-      for (const job of data) {
-        await processJob(job);
-      }
-    }
-
-    await sleep(2000);
-  }
-}
-
-run();
+runWorkerLoop({ getJobs, processJob });

@@ -1,15 +1,16 @@
-import { createActivityEvent } from "../lib/activity/events";
-import { simulateEngagement } from "../lib/engagement/simulate";
-import { recordQueueMetric } from "../lib/metrics/queue";
+import { mapToEmailProtection } from "./mapToEmailProtection";
+import { createActivityEvent } from "../activity/events";
+import { simulateEngagement } from "../engagement/simulate";
+import { recordQueueMetric } from "../metrics/queue";
 
-import { sendProductionEmail } from "../lib/production/email-runtime";
-import { evaluateProtectionActions } from "../lib/production/deliverability-protection";
-import { computeDeliveryHealth } from "../lib/production/delivery-observability";
-import { evaluateThrottle } from "../lib/production/throttling-engine";
+import { sendProductionEmail } from "../production/email-runtime";
+import { evaluateProtectionActions } from "../production/deliverability-protection";
+import { computeDeliveryHealth } from "../production/delivery-observability";
+import { evaluateThrottle } from "../production/throttling-engine";
 
 type QueueItem = {
   workspaceId?: string | null;
-  email_email: string;
+  recipient_email: string;
   subject: string;
   body: string;
 };
@@ -38,7 +39,7 @@ export async function processOutboundQueue(items: QueueItem[]) {
   for (const item of items) {
     // 🚫 HARD BLOCK
     if (!throttle.allowed) {
-      await createActivityEvent({
+      await createActivityEvent?.({
         workspaceId: item.workspaceId,
         type: "throttled_block",
         severity: "warning",
@@ -54,28 +55,28 @@ export async function processOutboundQueue(items: QueueItem[]) {
       await new Promise((r) => setTimeout(r, throttle.delayMs));
     }
 
-    await createActivityEvent({
+    await createActivityEvent?.({
       workspaceId: item.workspaceId,
       type: "queue_processing",
       severity: "info",
       title: "Processing outbound email",
-      description: `Sending email to ${item.email}`,
+      description: `Sending email to ${(item as any).email ?? (item as any).recipient ?? ""}`,
       metadata: {
         throttle,
-        protection,
+        protection: mapToEmailProtection((item as any).protection ?? { suppressSending: false, riskLevel: "low", mode: "safe" }),
       },
     });
 
     const delivery = await sendProductionEmail({
-      email_email: item.email,
+      recipient_email: (item as any).email ?? (item as any).recipient ?? "",
       subject: item.subject,
       body: item.body,
       allowProductionSend: liveSendEnabled,
-      protection,
+      protection: mapToEmailProtection((item as any).protection ?? { suppressSending: false, riskLevel: "low", mode: "safe" }),
     });
 
     if (delivery.success) {
-      await createActivityEvent({
+      await createActivityEvent?.({
         workspaceId: item.workspaceId,
         type:
           delivery.mode === "production"
@@ -86,7 +87,7 @@ export async function processOutboundQueue(items: QueueItem[]) {
           delivery.mode === "production"
             ? "Outbound email sent"
             : "Outbound email simulated",
-        description: `Email processed to ${item.email}`,
+        description: `Email processed to ${(item as any).email ?? (item as any).recipient ?? ""}`,
         metadata: delivery,
       });
 

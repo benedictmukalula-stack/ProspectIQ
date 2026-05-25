@@ -1,24 +1,30 @@
-import { supabase } from "../supabase.js";
-export async function insertQueueJobs(jobs) {
-    return supabase.from("queue").insert(jobs);
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.insertQueueJobs = insertQueueJobs;
+exports.getPendingJobs = getPendingJobs;
+exports.markJobProcessing = markJobProcessing;
+exports.markJobSent = markJobSent;
+const supabase_1 = require("../supabase");
+async function insertQueueJobs(jobs) {
+    return supabase_1.supabase.from("queue").insert(jobs);
 }
-export async function getPendingJobs(limit = 10) {
+async function getPendingJobs(limit = 10) {
     const now = new Date().toISOString();
-    return supabase
+    return supabase_1.supabase
         .from("queue")
         .select("*")
         .eq("status", "pending")
         .lte("scheduled_for", now)
         .limit(limit);
 }
-export async function markJobProcessing(id) {
-    return supabase
+async function markJobProcessing(id) {
+    return supabase_1.supabase
         .from("queue")
         .update({ status: "processing" })
         .eq("id", id);
 }
-export async function markJobSent(id, attempts) {
-    return supabase
+async function markJobSent(id, attempts) {
+    return supabase_1.supabase
         .from("queue")
         .update({
         status: "sent",

@@ -1,12 +1,29 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl =
-  process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const getEnv = () => ({
+  url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+});
 
-const supabaseKey =
-  process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+export const getSupabase = () => {
+  const { url, anonKey } = getEnv();
+  if (!url || !anonKey) {
+    throw new Error(
+      `Supabase configuration missing. URL: ${!!url}, ANON_KEY: ${!!anonKey}. Check your .env.local file and restart the server.`
+    );
+  }
+  return createClient(url, anonKey);
+};
 
-if (!supabaseUrl) throw new Error("Missing SUPABASE_URL");
-if (!supabaseKey) throw new Error("Missing SUPABASE_ANON_KEY");
+export const getSupabaseAdmin = () => {
+  const { url, serviceKey, anonKey } = getEnv();
+  if (!url) throw new Error("Supabase URL missing");
+  if (serviceKey) return createClient(url, serviceKey);
+  console.warn("SUPABASE_SERVICE_ROLE_KEY not set – using anon key for admin client (may cause permission errors)");
+  return createClient(url, anonKey);
+};
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+// For convenience, export a singleton that throws on missing keys
+export const supabase = getSupabase();
+export const supabaseAdmin = getSupabaseAdmin();

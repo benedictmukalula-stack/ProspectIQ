@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendProductionEmail } from "../lib/production/email-runtime";
+import { sendProductionEmail } from "../production/email-runtime";
 
 export async function POST(req: Request) {
   try {
